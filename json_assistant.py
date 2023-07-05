@@ -162,7 +162,7 @@ class Meeting:
                 "end_time": "",
                 "started": False,
                 "notified": False,
-                "members_not_attend": [["id", "reason"]]
+                "absent_members": [["id", "reason"]]
             }
             return empty_data
 
@@ -229,15 +229,15 @@ class Meeting:
         meeting_info["end_time"] = end_time
         self.write_raw_info(meeting_info)
 
-    def get_members_not_attend(self):
+    def get_absent_members(self):
         meeting_info = self.get_raw_info()
-        members = meeting_info["members_not_attend"]
+        members = meeting_info["absent_members"]
         del members[0]
-        return meeting_info["members_not_attend"]
+        return meeting_info["absent_members"]
 
-    def add_member_not_attend(self, member_id, reason):
+    def add_absent_member(self, member_id, reason):
         meeting_info = self.get_raw_info()
-        meeting_info["members_not_attend"].append([member_id, reason])
+        meeting_info["absent_members"].append([member_id, reason])
         self.write_raw_info(meeting_info)
 
     def get_started(self):
