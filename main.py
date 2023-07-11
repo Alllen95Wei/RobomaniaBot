@@ -26,8 +26,7 @@ TOKEN = str(os.getenv("TOKEN"))
 @tasks.loop(seconds=1)
 async def check_meeting():
     meeting_id_list = json_assistant.Meeting.get_all_meeting_id()
-    m = bot.get_user(657519721138094080)
-    member_list = bot.guilds[0].members
+    m = bot.get_channel(1128232150135738529)
     for meeting_id in meeting_id_list:
         meeting_obj = json_assistant.Meeting(meeting_id)
         if meeting_obj.get_started() is False:
@@ -54,8 +53,6 @@ async def check_meeting():
                 if meeting_obj.get_end_time() != "":
                     embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
-                # TODO: 將通知傳送對象改為全伺服器成員
-                # for m in member_list:
                 try:
                     await m.send(embed=embed)
                 except discord.Forbidden:
@@ -110,7 +107,7 @@ class GetEventInfo(discord.ui.Modal):
         meeting_obj.set_description(self.children[1].value)
         meeting_obj.set_host(interaction.user.id)
         meeting_obj.set_link(self.children[4].value)
-        embed.add_field(name="會議ID", value=unique_id, inline=False)
+        embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
         if self.children[1].value != "":
             embed.add_field(name="簡介", value=self.children[1].value, inline=False)
         embed.add_field(name="主持人", value=interaction.user.mention, inline=False)
@@ -152,6 +149,11 @@ class GetEventInfo(discord.ui.Modal):
         embed.add_field(name="會議地點", value=self.children[4].value, inline=False)
         embed.set_footer(text="請記下會議ID，以便後續進行編輯或刪除。")
         await interaction.response.edit_message(embed=embed, view=None)
+        m = bot.get_channel(1128232150135738529)
+        embed.title = "新會議"
+        embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
+        embed.set_footer(text=f"如要請假，請使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
+        await m.send(embed=embed)
 
 
 class GetEventInView(discord.ui.View):
@@ -180,7 +182,7 @@ async def ping(ctx):
     await ctx.respond(f"PONG！延遲：{round(bot.latency * 1000)}ms")
 
 
-@member.command(name="info", description="查看隊員資訊。")
+@member.command(name="查詢", description="查看隊員資訊。")
 async def member_info(ctx,
                       隊員: Option(discord.Member, "隊員", required=False) = None):  # noqa
     if 隊員 is None:
@@ -204,7 +206,7 @@ async def member_info(ctx,
 member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。")
 
 
-@member_info_manage.command(name="set_real_name", description="設定隊員真實姓名。")
+@member_info_manage.command(name="設定真名", description="設定隊員真實姓名。")
 async def member_set_real_name(ctx,
                                隊員: Option(discord.Member, "隊員", required=True),  # noqa
                                真實姓名: Option(str, "真實姓名", required=True)):  # noqa
@@ -222,7 +224,7 @@ async def member_set_real_name(ctx,
     await ctx.respond(embed=embed)
 
 
-@member_info_manage.command(name="add_job", description="新增隊員職務。")
+@member_info_manage.command(name="新增職務", description="新增隊員職務。")
 async def member_add_job(ctx,
                          隊員: Option(discord.Member, "隊員", required=True),  # noqa
                          職務: Option(str, "職務", required=True)):  # noqa
@@ -239,7 +241,7 @@ async def member_add_job(ctx,
     await ctx.respond(embed=embed)
 
 
-@member_info_manage.command(name="remove_job", description="移除隊員職務。")
+@member_info_manage.command(name="移除職務", description="移除隊員職務。")
 async def member_remove_job(ctx,
                             隊員: Option(discord.Member, "隊員", required=True),  # noqa
                             職務: Option(str, "職務", required=True)):  # noqa
@@ -284,11 +286,10 @@ warning_points_choices = [
     "3點 - 嚴重影響隊伍形象"]
 
 
-@member_info_manage.command(name="add_warning_points", description="記點。(對，就是記點，我希望我用不到這個指令)")
+@member_info_manage.command(name="記點", description="記點。(對，就是記點，我希望我用不到這個指令)")
 async def member_add_warning_points(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                    記點事由: Option(str, "記點事由", choices=warning_points_choices, required=True),
-                                    # noqa
+                                    記點事由: Option(str, "記點事由", choices=warning_points_choices, required=True),  # noqa
                                     附註: Option(str, "附註事項", required=False)):  # noqa
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
@@ -348,11 +349,11 @@ remove_warning_points_choices = [
     "1點 - 中午時間/第八節 打掃工作室"]
 
 
-@member_info_manage.command(name="remove_warning_points", description="銷點。")
+@member_info_manage.command(name="銷點", description="銷點。")
 async def member_remove_warning_points(ctx,
                                        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                       銷點事由: Option(str, "銷點事由", choices=remove_warning_points_choices,
-                                                        required=True),  # noqa
+                                       銷點事由: Option(str, "銷點事由", choices=remove_warning_points_choices,  # noqa
+                                                        required=True),
                                        附註: Option(str, "附註事項", required=False)):  # noqa
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
@@ -382,7 +383,7 @@ async def member_remove_warning_points(ctx,
     await ctx.respond(embed=embed)
 
 
-@member.command(name="warning_history", description="查詢記點紀錄。")
+@member.command(name="個人記點紀錄", description="查詢記點紀錄。")
 async def member_get_warning_history(ctx,
                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
     member_data = json_assistant.User(隊員.id)
@@ -403,7 +404,7 @@ async def member_get_warning_history(ctx,
     await ctx.respond(embed=embed)
 
 
-@member.command(name="all_warning_history", description="查詢所有記、銷點紀錄。")
+@member.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
 async def member_get_all_warning_history(ctx):
     embed = discord.Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
     for i in json_assistant.User.get_all_warning_history():
@@ -419,7 +420,7 @@ async def member_get_all_warning_history(ctx):
 meeting = bot.create_group(name="meeting", description="會議相關指令。")
 
 
-@meeting.command(name="create", description="預定新的會議。")
+@meeting.command(name="建立", description="預定新的會議。")
 async def create_new_meeting(ctx):
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
@@ -431,7 +432,7 @@ async def create_new_meeting(ctx):
         await ctx.respond(embed=embed)
 
 
-@meeting.command(name="edit", description="編輯會議資訊。")
+@meeting.command(name="編輯", description="編輯會議資訊。")
 async def edit_meeting(ctx, 會議id: Option(str, "欲修改的會議ID", min_length=5, max_length=5, required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
@@ -448,9 +449,9 @@ async def edit_meeting(ctx, 會議id: Option(str, "欲修改的會議ID", min_le
         await ctx.respond(embed=embed)
 
 
-@meeting.command(name="delete", description="刪除會議。")
+@meeting.command(name="刪除", description="刪除會議。")
 async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_length=5, max_length=5, required=True),  # noqa
-                         原因: Option(str, "取消會議的原因", required=False)):  # noqa
+                         原因: Option(str, "取消會議的原因", required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
         server = ctx.guild
@@ -461,9 +462,7 @@ async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_
                 embed = discord.Embed(title="錯誤", description="此會議已經開始，無法刪除！", color=error_color)
             else:
                 if meeting_obj.get_notified():
-                    # TODO: 將通知傳送對象改為全伺服器成員
-                    # for m in member_list:
-                    m = bot.get_user(657519721138094080)
+                    m = bot.get_channel(1128232150135738529)
                     notify_embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
                     notify_embed.add_field(name="會議標題", value=meeting_obj.get_name(), inline=False)
                     if 原因 is not None:
@@ -484,7 +483,7 @@ async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_
     await ctx.respond(embed=embed)
 
 
-@meeting.command(name="list_ids", description="列出所有的會議ID。")
+@meeting.command(name="所有id", description="列出所有的會議ID。")
 async def list_meetings(ctx):
     embed = discord.Embed(title="會議ID列表", description="目前已存在的會議ID如下：", color=default_color)
     for i in json_assistant.Meeting.get_all_meeting_id():
@@ -492,7 +491,7 @@ async def list_meetings(ctx):
     await ctx.respond(embed=embed)
 
 
-@meeting.command(name="absence", description="登記請假。")
+@meeting.command(name="請假", description="登記請假。")
 async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"), 原因: Option(str, "請假的原因", required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
@@ -523,13 +522,13 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
                     absent_record_embed.add_field(name="請假人員", value=absent_members_str, inline=False)
                 await absent_record_channel.send(embed=absent_record_embed)
                 embed = discord.Embed(title="請假成功", description=f"你已經成功請假。", color=default_color)
-                embed.add_field(name="會議ID", value=會議id, inline=False)
+                embed.add_field(name="會議ID", value=f"`{會議id}`", inline=False)
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
 
 
-@meeting.command(name="info", description="以會議id查詢會議資訊。")
+@meeting.command(name="查詢", description="以會議id查詢會議資訊。")
 async def get_meeting_info(ctx,
                            會議id: Option(str, "欲查詢的會議ID", min_length=5, max_length=5, required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
