@@ -53,10 +53,7 @@ async def check_meeting():
                 if meeting_obj.get_end_time() != "":
                     embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
-                try:
-                    await m.send(embed=embed)
-                except discord.Forbidden:
-                    pass
+                await m.send(content="@everyone", embed=embed)
                 meeting_obj.set_notified(True)
 
 
@@ -461,21 +458,17 @@ async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_
             if meeting_obj.get_started():
                 embed = discord.Embed(title="錯誤", description="此會議已經開始，無法刪除！", color=error_color)
             else:
+                m = bot.get_channel(1128232150135738529)
+                notify_embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。",
+                                             color=default_color)
+                notify_embed.add_field(name="會議標題", value=meeting_obj.get_name(), inline=False)
+                notify_embed.add_field(name="取消原因", value=原因, inline=False)
                 if meeting_obj.get_notified():
-                    m = bot.get_channel(1128232150135738529)
-                    notify_embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
-                    notify_embed.add_field(name="會議標題", value=meeting_obj.get_name(), inline=False)
-                    if 原因 is not None:
-                        notify_embed.add_field(name="取消原因", value=原因, inline=False)
-                    try:
-                        await m.send(embed=notify_embed)
-                    except discord.Forbidden:
-                        pass
-                    meeting_obj.delete()
-                    embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
+                    await m.send(content="@everyone", embed=notify_embed)
                 else:
-                    meeting_obj.delete()
-                    embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
+                    await m.send(embed=notify_embed)
+                meeting_obj.delete()
+                embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
         else:
             embed = discord.Embed(title="錯誤", description=f"你沒有權限刪除會議！", color=error_color)
     else:
