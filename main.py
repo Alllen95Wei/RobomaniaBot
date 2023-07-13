@@ -7,6 +7,8 @@ from discord.ext import tasks
 from discord import Option
 import os
 from dotenv import load_dotenv
+import update as upd
+from platform import system
 
 import json_assistant
 
@@ -544,6 +546,21 @@ async def get_meeting_info(ctx,
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="update", description="更新機器人。")
+async def update(ctx,
+                 私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa: PEP 3131
+    if ctx.author == bot.get_user(657519721138094080):
+        embed = discord.Embed(title="更新中", description="更新流程啟動。", color=default_color)
+        await ctx.respond(embed=embed, ephemeral=私人訊息)
+        event = discord.Activity(type=discord.ActivityType.playing, name="更新中...")
+        await bot.change_presence(status=discord.Status.idle, activity=event)
+        upd.update(os.getpid(), system())
+    else:
+        embed = discord.Embed(title="錯誤", description="你沒有權限使用此指令。", color=error_color)
+        私人訊息 = True  # noqa: PEP 3131
+        await ctx.respond(embed=embed, ephemeral=私人訊息)
 
 
 bot.run(TOKEN)
