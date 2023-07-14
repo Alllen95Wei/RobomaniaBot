@@ -342,6 +342,36 @@ async def member_add_warning_points(ctx,
     await ctx.respond(embeds=embed_list)
 
 
+@member_info_manage.command(name="意外記銷點", description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
+async def member_add_warning_points(ctx,
+                                    隊員: Option(discord.Member, "隊員", required=True),  # noqa
+                                    記點點數: Option(int, "記點點數", required=True),  # noqa
+                                    記點事由: Option(str, "記點事由", required=True)):  # noqa
+    server = ctx.guild
+    manager_role = discord.utils.get(server.roles, id=1114205838144454807)
+    if manager_role in ctx.author.roles:
+        member_data = json_assistant.User(隊員.id)
+        member_data.add_warning_points(記點點數, "使用「意外記/銷點」指令", 記點事由)
+        current_points = member_data.get_warning_points()
+        embed = discord.Embed(title="意外記/銷點", description=f"已將 {隊員.mention} 記/銷點。", color=default_color)
+        embed.add_field(name="記點點數", value=str(記點點數), inline=True)
+        embed.add_field(name="目前點數(已加上/減去新點數)", value=str(current_points), inline=True)
+        embed.add_field(name="記點事由", value="使用「意外記/銷點」指令", inline=False)
+        embed.add_field(name="附註事項", value=記點事由, inline=False)
+        embed.set_thumbnail(url=隊員.display_avatar)
+        embed_list = [embed]
+        if current_points >= 5:
+            warning_msg = discord.Embed(title="退隊警告！",
+                                        description=f"{隊員.mention} 的點數({current_points}點)已達到5點！",
+                                        color=error_color)
+            warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
+            embed_list.append(warning_msg)
+    else:
+        embed = discord.Embed(title="意外記/銷點", description=f"你沒有權限記/銷點！", color=error_color)
+        embed_list = [embed]
+    await ctx.respond(embeds=embed_list)
+
+
 remove_warning_points_choices = [
     "半點 - 自主倒垃圾",
     "半點 - 培訓時去外面拿午餐",
