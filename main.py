@@ -282,6 +282,7 @@ warning_points_choices = [
     "1點 - 開會/培訓 無故未到",
     "1點 - 兩天內沒有交工筆(賽季時為三天)",
     "1點 - 謊報請假時間/原因",
+    "1點 - 無故遲交文件超過一天",
     "2點 - 上課/工作時滑手機",
     "2點 - 打遊戲太吵",
     "3點 - 嚴重影響隊伍形象"]
@@ -310,6 +311,9 @@ async def member_add_warning_points(ctx,
             member_data.add_warning_points(1, reason, 附註)
             points = 1
         elif 記點事由 == "1點 - 謊報請假時間/原因":
+            member_data.add_warning_points(1, reason, 附註)
+            points = 1
+        elif 記點事由 == "1點 - 無故遲交文件超過一天":
             member_data.add_warning_points(1, reason, 附註)
             points = 1
         elif 記點事由 == "2點 - 上課/工作時滑手機":
