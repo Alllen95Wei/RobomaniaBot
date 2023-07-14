@@ -170,6 +170,8 @@ async def on_ready():
     print("機器人準備完成！")
     print(f"PING值：{round(bot.latency * 1000)}ms")
     print(f"登入身分：{bot.user}")
+    activity = discord.Activity(name="GitHub", type=discord.ActivityType.watching)
+    await bot.change_presence(activity=activity)
     await check_meeting.start()
 
 
