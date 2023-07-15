@@ -351,19 +351,19 @@ async def member_add_warning_points(ctx,
 @member_info_manage.command(name="意外記銷點", description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
 async def member_add_warning_points(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                    記點點數: Option(float, "記點點數", required=True),  # noqa
-                                    記點事由: Option(str, "記點事由", required=True)):  # noqa
+                                    點數: Option(float, "點數", required=True),  # noqa
+                                    事由: Option(str, "事由", required=True)):  # noqa
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
     if manager_role in ctx.author.roles:
         member_data = json_assistant.User(隊員.id)
-        member_data.add_warning_points(記點點數, "使用「意外記/銷點」指令", 記點事由)
+        member_data.add_warning_points(點數, "使用「意外記/銷點」指令", 事由)
         current_points = member_data.get_warning_points()
         embed = discord.Embed(title="意外記/銷點", description=f"已將 {隊員.mention} 記/銷點。", color=default_color)
-        embed.add_field(name="記點點數", value=str(記點點數), inline=True)
+        embed.add_field(name="記點點數", value=str(點數), inline=True)
         embed.add_field(name="目前點數(已加上/減去新點數)", value=str(current_points), inline=True)
         embed.add_field(name="記點事由", value="使用「意外記/銷點」指令", inline=False)
-        embed.add_field(name="附註事項", value=記點事由, inline=False)
+        embed.add_field(name="附註事項", value=事由, inline=False)
         embed.set_thumbnail(url=隊員.display_avatar)
         embed_list = [embed]
         if current_points >= 5:
