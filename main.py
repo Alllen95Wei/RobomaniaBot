@@ -351,7 +351,7 @@ async def member_add_warning_points(ctx,
 @member_info_manage.command(name="意外記銷點", description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
 async def member_add_warning_points(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                    記點點數: Option(int, "記點點數", required=True),  # noqa
+                                    記點點數: Option(float, "記點點數", required=True),  # noqa
                                     記點事由: Option(str, "記點事由", required=True)):  # noqa
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
