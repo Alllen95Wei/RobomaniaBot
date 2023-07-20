@@ -162,6 +162,7 @@ class Meeting:
                 "end_time": "",
                 "started": False,
                 "notified": False,
+                "meeting_record_link": "",
                 "absent_members": [["id", "reason"]]
             }
             return empty_data
@@ -256,4 +257,13 @@ class Meeting:
     def set_notified(self, notified: bool):
         meeting_info = self.get_raw_info()
         meeting_info["notified"] = notified
+        self.write_raw_info(meeting_info)
+
+    def get_meeting_record_link(self):
+        meeting_info = self.get_raw_info()
+        return meeting_info["meeting_record_link"]
+
+    def set_meeting_record_link(self, link: str):
+        meeting_info = self.get_raw_info()
+        meeting_info["meeting_record_link"] = link
         self.write_raw_info(meeting_info)
