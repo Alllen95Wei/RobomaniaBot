@@ -428,6 +428,9 @@ async def member_remove_warning_points(ctx,
         else:
             points = 0
         embed = discord.Embed(title="銷點", description=f"已將 {隊員.mention} 銷點。", color=default_color)
+        if member_data.get_warning_points() < 0:
+            member_data.add_warning_points(-member_data.get_warning_points(), "防止負點發生", "為避免記點點數為負，機器人已自動將點數設為0。")
+            embed.set_footer(text="為避免記點點數為負，機器人已自動將點數設為0。")
         embed.add_field(name="銷點點數", value=str(points), inline=True)
         embed.add_field(name="目前點數(已減去新點數)", value=str(member_data.get_warning_points()), inline=True)
         embed.add_field(name="銷點事由", value=reason, inline=False)
