@@ -261,7 +261,10 @@ class Meeting:
 
     def get_meeting_record_link(self):
         meeting_info = self.get_raw_info()
-        return meeting_info["meeting_record_link"]
+        try:
+            return meeting_info["meeting_record_link"]
+        except KeyError:
+            return ""
 
     def set_meeting_record_link(self, link: str):
         meeting_info = self.get_raw_info()

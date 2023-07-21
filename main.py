@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import update as upd
 from platform import system
+import re
 
 import json_assistant
 
@@ -44,6 +45,11 @@ async def check_meeting():
                 if meeting_obj.get_end_time() != "":
                     embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
+                if meeting_obj.get_absent_members():
+                    absent_members = ""
+                    for m in meeting_obj.get_absent_members():
+                        absent_members += f"<@{m[0]}> - *{m[1]}*\n"
+                    embed.add_field(name="請假人員", value=absent_members, inline=False)
                 await m.send(embed=embed)
             elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
                 embed = discord.Embed(title="會議即將開始！",
@@ -70,7 +76,8 @@ class GetEventInfo(discord.ui.Modal):
                             strftime("%Y/%m/%d %H:%M"),
                             datetime.datetime.fromtimestamp(meeting_obj.get_end_time(), tz=now_tz).
                             strftime("%Y/%m/%d %H:%M") if meeting_obj.get_end_time() != "" else "",
-                            meeting_obj.get_link()]
+                            meeting_obj.get_link(),
+                            meeting_obj.get_meeting_record_link()]
         else:
             prefill_data = ["", "", "", "", ""]
 
@@ -89,6 +96,9 @@ class GetEventInfo(discord.ui.Modal):
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議地點",
                                            placeholder="可貼上Meet或Discord頻道連結",
                                            value=prefill_data[4], required=True))
+        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議記錄連結",
+                                           placeholder="貼上Google文件連結",
+                                           value=prefill_data[5], required=False))
 
     async def callback(self, interaction: discord.Interaction):
         if self.meeting_id is not None:
@@ -106,6 +116,7 @@ class GetEventInfo(discord.ui.Modal):
         meeting_obj.set_description(self.children[1].value)
         meeting_obj.set_host(interaction.user.id)
         meeting_obj.set_link(self.children[4].value)
+        meeting_obj.set_meeting_record_link(self.children[5].value)
         embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
         if self.children[1].value != "":
             embed.add_field(name="簡介", value=self.children[1].value, inline=False)
@@ -146,12 +157,14 @@ class GetEventInfo(discord.ui.Modal):
                 await interaction.response.edit_message(embed=embed)
                 return
         embed.add_field(name="會議地點", value=self.children[4].value, inline=False)
+        if self.children[5].value != "":
+            embed.add_field(name="會議記錄連結", value=self.children[5].value, inline=False)
         embed.set_footer(text="請記下會議ID，以便後續進行編輯或刪除。")
         await interaction.response.edit_message(embed=embed, view=None)
         m = bot.get_channel(1128232150135738529)
         embed.title = "新會議"
         embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
-        embed.set_footer(text=f"如要請假，請使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
+        embed.set_footer(text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
         await m.send(embed=embed, view=AbsentInView(unique_id))
 
 
@@ -601,6 +614,46 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
         await ctx.followup.send(embed=embed, ephemeral=True)
 
 
+@meeting.command(name="設定會議記錄", description="設定會議記錄連結。")
+async def set_meeting_record_link(ctx,
+                                    會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),  # noqa
+                                    連結: Option(str, "會議記錄連結", required=True)):  # noqa
+    id_list = json_assistant.Meeting.get_all_meeting_id()
+    if 會議id in id_list:
+        server = ctx.guild
+        manager_role = discord.utils.get(server.roles, id=1114205838144454807)
+        if manager_role in ctx.author.roles:
+            meeting_obj = json_assistant.Meeting(會議id)
+            regex = re.compile(
+                r'^(?:http|ftp)s?://'  # http:// or https://
+                r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+                r'(?::\d+)?'  # optional port
+                r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+            if not re.match(regex, 連結):
+                embed = discord.Embed(title="錯誤", description=f"你輸入的連結({連結})格式不正確！", color=error_color)
+            else:
+                meeting_obj.set_meeting_record_link(連結)
+                embed = discord.Embed(title="設定會議記錄連結", description=f"已將會議 `{會議id}` 的會議記錄連結設定為 `{連結}`。",
+                                      color=default_color)
+                if meeting_obj.get_absent_members():
+                    notify_channel = bot.get_channel(1128232150135738529)
+                    absent_members_str = ""
+                    for m in meeting_obj.get_absent_members():
+                        absent_members_str += f"<@{m[0]}> "
+                    notify_embed = discord.Embed(title="會議記錄連結", description=f"會議 `{會議id}` 的會議記錄連結已經設定。\n"
+                                                                             f"缺席的成員，請務必閱讀會議紀錄！",
+                                                 color=default_color)
+                    notify_embed.add_field(name="會議名稱", value=meeting_obj.get_name(), inline=False)
+                    notify_embed.add_field(name="會議記錄連結", value=連結, inline=False)
+                    await notify_channel.send(content=absent_members_str, embed=notify_embed)
+        else:
+            embed = discord.Embed(title="錯誤", description=f"你沒有權限設定會議記錄連結！", color=error_color)
+    else:
+        embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
+    await ctx.respond(embed=embed)
+
+
 @meeting.command(name="查詢", description="以會議id查詢會議資訊。")
 async def get_meeting_info(ctx,
                            會議id: Option(str, "欲查詢的會議ID", min_length=5, max_length=5, required=True)):  # noqa
@@ -616,6 +669,8 @@ async def get_meeting_info(ctx,
         if meeting_obj.get_end_time() != "":
             embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
         embed.add_field(name="地點", value=meeting_obj.get_link(), inline=False)
+        if meeting_obj.get_meeting_record_link() != "":
+            embed.add_field(name="會議記錄", value=meeting_obj.get_meeting_record_link(), inline=False)
         if meeting_obj.get_absent_members():
             absent_members_str = ""
             for m in meeting_obj.get_absent_members():
