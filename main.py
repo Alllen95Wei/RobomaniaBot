@@ -79,7 +79,7 @@ class GetEventInfo(discord.ui.Modal):
                             meeting_obj.get_link(),
                             meeting_obj.get_meeting_record_link()]
         else:
-            prefill_data = ["", "", "", "", ""]
+            prefill_data = ["", "", "", "", "", ""]
 
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議標題", value=prefill_data[0],
                                            required=True))
@@ -236,6 +236,11 @@ async def member_info(ctx,
     embed.add_field(name="警告點數", value=member_data.get_warning_points(), inline=False)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
+
+
+@bot.user_command(name="查看此隊員的資訊")
+async def member_info_user(ctx, user: discord.Member):
+    await member_info(ctx, user)
 
 
 member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。")
@@ -479,6 +484,11 @@ async def member_get_warning_history(ctx,
             embed.add_field(name=i[0], value=formatted_history, inline=False)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
+
+
+@bot.user_command(name="查看此隊員的記點紀錄")
+async def member_get_warning_history_user(ctx, user: discord.Member):
+    await member_get_warning_history(ctx, user)
 
 
 @member.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
