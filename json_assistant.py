@@ -159,7 +159,6 @@ class Meeting:
                 "host": "",
                 "link": "",
                 "start_time": "",
-                "end_time": "",
                 "started": False,
                 "notified": False,
                 "meeting_record_link": "",
@@ -219,15 +218,6 @@ class Meeting:
     def set_start_time(self, start_time):
         meeting_info = self.get_raw_info()
         meeting_info["start_time"] = start_time
-        self.write_raw_info(meeting_info)
-
-    def get_end_time(self):
-        meeting_info = self.get_raw_info()
-        return meeting_info["end_time"]
-
-    def set_end_time(self, end_time):
-        meeting_info = self.get_raw_info()
-        meeting_info["end_time"] = end_time
         self.write_raw_info(meeting_info)
 
     def get_absent_members(self):

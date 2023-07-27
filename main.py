@@ -42,8 +42,6 @@ async def check_meeting():
                     embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                 embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
                                                   f"({bot.get_user(meeting_obj.get_host())})", inline=False)
-                if meeting_obj.get_end_time() != "":
-                    embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                 if meeting_obj.get_absent_members():
                     absent_members = ""
@@ -58,8 +56,6 @@ async def check_meeting():
                                       color=default_color)
                 if meeting_obj.get_description() != "":
                     embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
-                if meeting_obj.get_end_time() != "":
-                    embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                 await m.send(content="@everyone", embed=embed)
                 meeting_obj.set_notified(True)
@@ -74,12 +70,10 @@ class GetEventInfo(discord.ui.Modal):
             prefill_data = [meeting_obj.get_name(), meeting_obj.get_description(),
                             datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), tz=now_tz).
                             strftime("%Y/%m/%d %H:%M"),
-                            datetime.datetime.fromtimestamp(meeting_obj.get_end_time(), tz=now_tz).
-                            strftime("%Y/%m/%d %H:%M") if meeting_obj.get_end_time() != "" else "",
                             meeting_obj.get_link(),
                             meeting_obj.get_meeting_record_link()]
         else:
-            prefill_data = ["", "", "", "", "", ""]
+            prefill_data = ["", "", "", "", ""]
 
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議標題", value=prefill_data[0],
                                            required=True))
@@ -89,16 +83,12 @@ class GetEventInfo(discord.ui.Modal):
             discord.ui.InputText(style=discord.InputTextStyle.short, label="開始時間(格式：YYYY/MM/DD HH:MM，24小時制)",
                                  placeholder="如：2021/01/10 12:05", min_length=16, max_length=16,
                                  value=prefill_data[2], required=True))
-        self.add_item(
-            discord.ui.InputText(style=discord.InputTextStyle.short, label="結束時間(格式：YYYY/MM/DD HH:MM，24小時制)",
-                                 placeholder="如：2021/01/10 13:05", min_length=16, max_length=16,
-                                 value=prefill_data[3], required=False))
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議地點",
                                            placeholder="可貼上Meet或Discord頻道連結",
-                                           value=prefill_data[4], required=True))
+                                           value=prefill_data[3], required=True))
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議記錄連結",
                                            placeholder="貼上Google文件連結",
-                                           value=prefill_data[5], required=False))
+                                           value=prefill_data[4], required=False))
 
     async def callback(self, interaction: discord.Interaction):
         if self.meeting_id is not None:
@@ -115,8 +105,8 @@ class GetEventInfo(discord.ui.Modal):
         meeting_obj.set_name(self.children[0].value)
         meeting_obj.set_description(self.children[1].value)
         meeting_obj.set_host(interaction.user.id)
-        meeting_obj.set_link(self.children[4].value)
-        meeting_obj.set_meeting_record_link(self.children[5].value)
+        meeting_obj.set_link(self.children[3].value)
+        meeting_obj.set_meeting_record_link(self.children[4].value)
         embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
         if self.children[1].value != "":
             embed.add_field(name="簡介", value=self.children[1].value, inline=False)
@@ -138,27 +128,9 @@ class GetEventInfo(discord.ui.Modal):
                                   color=error_color)
             await interaction.response.edit_message(embed=embed)
             return
-        if self.children[3].value != "":
-            try:
-                unix_end_time = time.mktime(time.strptime(self.children[3].value, "%Y/%m/%d %H:%M"))
-                if unix_end_time < unix_start_time:
-                    embed = discord.Embed(title="錯誤",
-                                          description=f"輸入的結束時間(<t:{int(unix_end_time)}>)早於開始時間！請重新輸入。",
-                                          color=error_color)
-                    await interaction.response.edit_message(embed=embed)
-                    return
-                else:
-                    meeting_obj.set_end_time(unix_end_time)
-                    embed.add_field(name="結束時間", value=f"<t:{int(unix_end_time)}>", inline=False)
-            except ValueError:
-                embed = discord.Embed(title="錯誤",
-                                      description=f"輸入的結束時間(`{self.children[3].value}`)格式錯誤！請重新輸入。",
-                                      color=error_color)
-                await interaction.response.edit_message(embed=embed)
-                return
-        embed.add_field(name="會議地點", value=self.children[4].value, inline=False)
-        if self.children[5].value != "":
-            embed.add_field(name="會議記錄連結", value=self.children[5].value, inline=False)
+        embed.add_field(name="會議地點", value=self.children[3].value, inline=False)
+        if self.children[4].value != "":
+            embed.add_field(name="會議記錄連結", value=self.children[4].value, inline=False)
         embed.set_footer(text="請記下會議ID，以便後續進行編輯或刪除。")
         await interaction.response.edit_message(embed=embed, view=None)
         m = bot.get_channel(1128232150135738529)
@@ -676,8 +648,6 @@ async def get_meeting_info(ctx,
             embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
         embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}>", inline=False)
         embed.add_field(name="開始時間", value=f"<t:{int(meeting_obj.get_start_time())}>", inline=False)
-        if meeting_obj.get_end_time() != "":
-            embed.add_field(name="預計結束時間", value=f"<t:{int(meeting_obj.get_end_time())}>", inline=False)
         embed.add_field(name="地點", value=meeting_obj.get_link(), inline=False)
         if meeting_obj.get_meeting_record_link() != "":
             embed.add_field(name="會議記錄", value=meeting_obj.get_meeting_record_link(), inline=False)
