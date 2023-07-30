@@ -1,6 +1,8 @@
 import time
 import datetime
 import zoneinfo
+import logging
+from colorlog import ColoredFormatter
 import discord
 from discord.ext import commands
 from discord.ext import tasks
@@ -26,8 +28,64 @@ load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
 TOKEN = str(os.getenv("TOKEN"))
 
 
+class CreateLogger:
+    def __init__(self):
+        super().__init__()
+        self.c_logger = self.color_logger()
+
+    @staticmethod
+    def color_logger():
+        display_formatter = ColoredFormatter(
+            fmt="%(white)s[%(asctime)s] %(log_color)s%(levelname)-10s%(reset)s %(blue)s%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "ANONYMOUS": "purple",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red",
+            },
+        )
+
+        file_formatter = logging.Formatter(
+            fmt="[%(asctime)s] %(levelname)-8s %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S")
+
+        logger = logging.getLogger()
+        handler = logging.StreamHandler()
+        handler.setFormatter(display_formatter)
+        logger.addHandler(handler)
+        handler = logging.FileHandler("logs.log", encoding="utf-8")
+        handler.setFormatter(file_formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+        return logger
+
+    def debug(self, message: str):
+        self.c_logger.debug(message)
+
+    def info(self, message: str):
+        self.c_logger.info(message)
+
+    def warning(self, message: str):
+        self.c_logger.warning(message)
+
+    def error(self, message: str):
+        self.c_logger.error(message)
+
+    def critical(self, message: str):
+        self.c_logger.critical(message)
+
+
+real_logger = CreateLogger()
+
+
 @tasks.loop(seconds=1)
 async def check_meeting():
+    real_logger.debug("開始檢查會議時間...")
     meeting_id_list = json_assistant.Meeting.get_all_meeting_id()
     m = bot.get_channel(1128232150135738529)
     for meeting_id in meeting_id_list:
@@ -49,6 +107,7 @@ async def check_meeting():
                         absent_members += f"<@{m[0]}> - *{m[1]}*\n"
                     embed.add_field(name="請假人員", value=absent_members, inline=False)
                 await m.send(embed=embed)
+                real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
             elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
                 embed = discord.Embed(title="會議即將開始！",
                                       description=f"會議**「{meeting_obj}」**即將於<t:{int(meeting_obj.get_start_time())}:R>"
@@ -59,6 +118,7 @@ async def check_meeting():
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                 await m.send(content="@everyone", embed=embed)
                 meeting_obj.set_notified(True)
+                real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
 
 
 class GetEventInfo(discord.ui.Modal):
@@ -107,6 +167,7 @@ class GetEventInfo(discord.ui.Modal):
         meeting_obj.set_host(interaction.user.id)
         meeting_obj.set_link(self.children[3].value)
         meeting_obj.set_meeting_record_link(self.children[4].value)
+        real_logger.info(f"已預定/編輯會議 {unique_id}。")
         embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
         if self.children[1].value != "":
             embed.add_field(name="簡介", value=self.children[1].value, inline=False)
@@ -136,8 +197,10 @@ class GetEventInfo(discord.ui.Modal):
         m = bot.get_channel(1128232150135738529)
         embed.title = "新會議"
         embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
-        embed.set_footer(text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
+        embed.set_footer(
+            text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
         await m.send(embed=embed, view=AbsentInView(unique_id))
+        real_logger.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
 
 
 class Absent(discord.ui.Modal):
@@ -173,12 +236,17 @@ class AbsentInView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    print("機器人準備完成！")
-    print(f"PING值：{round(bot.latency * 1000)}ms")
-    print(f"登入身分：{bot.user}")
+    real_logger.info("機器人準備完成！")
+    real_logger.info(f"PING值：{round(bot.latency * 1000)}ms")
+    real_logger.info(f"登入身分：{bot.user}")
     activity = discord.Activity(name="GitHub", type=discord.ActivityType.watching)
     await bot.change_presence(activity=activity)
     await check_meeting.start()
+
+
+@bot.event
+async def on_application_command(ctx):
+    real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
 
 
 member = bot.create_group(name="member", description="隊員資訊相關指令。")
@@ -187,6 +255,23 @@ member = bot.create_group(name="member", description="隊員資訊相關指令�
 @bot.slash_command(name="ping", description="查看機器人延遲。")
 async def ping(ctx):
     await ctx.respond(f"PONG！延遲：{round(bot.latency * 1000)}ms")
+
+
+@bot.event
+async def on_application_command_error(ctx, error):
+    embed = discord.Embed(title="錯誤", description=f"發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
+    embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
+    embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
+    embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
+    embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
+    if isinstance(error, commands.CommandOnCooldown):
+        embed = discord.Embed(title="指令冷卻中", description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
+                              color=error_color)
+        await ctx.respond(embed=embed, ephemeral=True)
+    else:
+        allen = bot.get_user(657519721138094080)
+        await allen.send(embed=embed)
+        raise error
 
 
 @member.command(name="查詢", description="查看隊員資訊。")
@@ -361,7 +446,8 @@ async def member_add_warning_points(ctx,
     await ctx.respond(embeds=embed_list)
 
 
-@member_info_manage.command(name="意外記銷點", description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
+@member_info_manage.command(name="意外記銷點",
+                            description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
 async def member_add_warning_points(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
                                     點數: Option(float, "點數", required=True),  # noqa
@@ -424,7 +510,8 @@ async def member_remove_warning_points(ctx,
             points = 0
         embed = discord.Embed(title="銷點", description=f"已將 {隊員.mention} 銷點。", color=default_color)
         if member_data.get_warning_points() < 0:
-            member_data.add_warning_points(-member_data.get_warning_points(), "防止負點發生", "為避免記點點數為負，機器人已自動將點數設為0。")
+            member_data.add_warning_points(-member_data.get_warning_points(), "防止負點發生",
+                                           "為避免記點點數為負，機器人已自動將點數設為0。")
             embed.set_footer(text="為避免記點點數為負，機器人已自動將點數設為0。")
         embed.add_field(name="銷點點數", value=str(points), inline=True)
         embed.add_field(name="目前點數(已減去新點數)", value=str(member_data.get_warning_points()), inline=True)
@@ -498,7 +585,8 @@ async def edit_meeting(ctx, 會議id: Option(str, "欲修改的會議ID", min_le
         server = ctx.guild
         manager_role = discord.utils.get(server.roles, id=1114205838144454807)
         if manager_role in ctx.author.roles:
-            embed = discord.Embed(title="編輯會議", description="請點擊下方的按鈕，開啟會議編輯視窗。", color=default_color)
+            embed = discord.Embed(title="編輯會議", description="請點擊下方的按鈕，開啟會議編輯視窗。",
+                                  color=default_color)
             await ctx.respond(embed=embed, view=GetEventInfoInView(會議id), ephemeral=True)
         else:
             embed = discord.Embed(title="錯誤", description=f"你沒有權限編輯會議！", color=error_color)
@@ -547,7 +635,8 @@ async def list_meetings(ctx):
 
 
 @meeting.command(name="請假", description="登記請假。")
-async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"), 原因: Option(str, "請假的原因", required=True)):  # noqa
+async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),  # noqa
+                          原因: Option(str, "請假的原因", required=True)):  # noqa
     try:
         await ctx.defer()
     except AttributeError:
@@ -559,7 +648,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 3600:
             embed = discord.Embed(title="錯誤", description=f"請假需在會議一小時前處理完畢。\n"
-                                                          f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                            f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
             absent_members_id = [i[0] for i in meeting_obj.get_absent_members()]
@@ -598,8 +687,8 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
 
 @meeting.command(name="設定會議記錄", description="設定會議記錄連結。")
 async def set_meeting_record_link(ctx,
-                                    會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),  # noqa
-                                    連結: Option(str, "會議記錄連結", required=True)):  # noqa
+                                  會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),  # noqa
+                                  連結: Option(str, "會議記錄連結", required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
         server = ctx.guild
@@ -616,15 +705,17 @@ async def set_meeting_record_link(ctx,
                 embed = discord.Embed(title="錯誤", description=f"你輸入的連結({連結})格式不正確！", color=error_color)
             else:
                 meeting_obj.set_meeting_record_link(連結)
-                embed = discord.Embed(title="設定會議記錄連結", description=f"已將會議 `{會議id}` 的會議記錄連結設定為 `{連結}`。",
+                embed = discord.Embed(title="設定會議記錄連結",
+                                      description=f"已將會議 `{會議id}` 的會議記錄連結設定為 `{連結}`。",
                                       color=default_color)
                 if meeting_obj.get_absent_members():
                     notify_channel = bot.get_channel(1128232150135738529)
                     absent_members_str = ""
                     for m in meeting_obj.get_absent_members():
                         absent_members_str += f"<@{m[0]}> "
-                    notify_embed = discord.Embed(title="會議記錄連結", description=f"會議 `{會議id}` 的會議記錄連結已經設定。\n"
-                                                                             f"缺席的成員，請務必閱讀會議紀錄！",
+                    notify_embed = discord.Embed(title="會議記錄連結",
+                                                 description=f"會議 `{會議id}` 的會議記錄連結已經設定。\n"
+                                                             f"缺席的成員，請務必閱讀會議紀錄！",
                                                  color=default_color)
                     notify_embed.add_field(name="會議名稱", value=meeting_obj.get_name(), inline=False)
                     notify_embed.add_field(name="會議記錄連結", value=連結, inline=False)
