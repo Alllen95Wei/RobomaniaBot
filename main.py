@@ -3,6 +3,7 @@ import datetime
 import zoneinfo
 import logging
 from colorlog import ColoredFormatter
+from PIL import ImageGrab
 import discord
 from discord.ext import commands
 from discord.ext import tasks
@@ -750,6 +751,27 @@ async def get_meeting_info(ctx,
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="screenshot", description="在機器人伺服器端截圖。")
+async def screenshot(ctx,
+                     私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa
+    if ctx.author == bot.get_user(657519721138094080):
+        try:
+            await ctx.defer()
+            # 截圖
+            img = ImageGrab.grab()
+            img.save("screenshot.png")
+            file = discord.File("screenshot.png")
+            embed = discord.Embed(title="截圖", color=default_color)
+            await ctx.respond(embed=embed, file=file, ephemeral=私人訊息)
+        except Exception as e:
+            embed = discord.Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
+            await ctx.respond(embed=embed, ephemeral=私人訊息)
+    else:
+        embed = discord.Embed(title="錯誤", description="你沒有權限使用此指令。", color=error_color)
+        私人訊息 = True  # noqa
+        await ctx.respond(embed=embed, ephemeral=私人訊息)
 
 
 @bot.slash_command(name="update", description="更新機器人。")
