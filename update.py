@@ -4,6 +4,7 @@ from time import sleep
 
 def update(pid, os):
     get_update_files()
+    install_requirements()
     sleep(5)
     restart_running_bot(pid, os)
 
@@ -24,6 +25,10 @@ def kill_running_bot(pid, os):
         subprocess.run(['taskkill', '/f', '/PID', str(format(pid))])
     elif os == "Linux":
         subprocess.run(['kill', '-9', str(format(pid))])
+
+
+def install_requirements():
+    subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
 
 
 if __name__ == '__main__':
