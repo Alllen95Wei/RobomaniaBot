@@ -255,7 +255,9 @@ member = bot.create_group(name="member", description="隊員資訊相關指令�
 
 @bot.slash_command(name="ping", description="查看機器人延遲。")
 async def ping(ctx):
-    await ctx.respond(f"PONG！延遲：{round(bot.latency * 1000)}ms")
+    embed = discord.Embed(title="PONG!✨", color=default_color)
+    embed.add_field(name="PING值", value=f"`{round(bot.latency * 1000)}` ms")
+    await ctx.respond(embed=embed)
 
 
 @bot.event
