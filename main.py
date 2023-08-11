@@ -527,6 +527,26 @@ async def member_remove_warning_points(ctx,
     await ctx.respond(embed=embed)
 
 
+@member_info_manage.command(name="改名", description="將伺服器中所有成員的名稱改為其真名。")
+async def member_change_name(ctx):
+    server = ctx.guild
+    manager_role = discord.utils.get(server.roles, id=1114205838144454807)
+    if manager_role in ctx.author.roles:
+        embed = discord.Embed(title="改名", description="已將伺服器中所有成員的名稱改為其真名。", color=default_color)
+        no_real_name = ""
+        for m in server.members:
+            real_name = json_assistant.User(m.id).get_real_name()
+            if real_name is not None:
+                await m.edit(nick=real_name)
+            else:
+                no_real_name += f"{m.mention} "
+        if no_real_name != "":
+            embed.add_field(name="未設定真名的成員", value=no_real_name if no_real_name else "無", inline=False)
+    else:
+        embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
+    await ctx.respond(embed=embed)
+
+
 @member.command(name="個人記點紀錄", description="查詢記點紀錄。")
 async def member_get_warning_history(ctx,
                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
