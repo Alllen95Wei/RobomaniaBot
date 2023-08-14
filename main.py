@@ -536,6 +536,7 @@ async def member_change_name(ctx):
         no_real_name = ""
         for m in server.members:
             real_name = json_assistant.User(m.id).get_real_name()
+            real_logger.info(f"正在改名 {m} 為真名({real_name})")
             if real_name is not None:
                 await m.edit(nick=real_name)
             else:
