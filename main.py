@@ -534,15 +534,22 @@ async def member_change_name(ctx):
     if manager_role in ctx.author.roles:
         embed = discord.Embed(title="改名", description="已將伺服器中所有成員的名稱改為其真名。", color=default_color)
         no_real_name = ""
+        failed = ""
         for m in server.members:
             real_name = json_assistant.User(m.id).get_real_name()
             real_logger.info(f"正在改名 {m} 為真名({real_name})")
             if real_name is not None:
-                await m.edit(nick=real_name)
+                try:
+                    await m.edit(nick=real_name)
+                except discord.Forbidden:
+                    failed += f"{m.mention} "
+                    pass
             else:
                 no_real_name += f"{m.mention} "
         if no_real_name != "":
             embed.add_field(name="未設定真名的成員", value=no_real_name if no_real_name else "無", inline=False)
+        if failed != "":
+            embed.add_field(name="改名失敗的成員", value=failed if failed else "無", inline=False)
     else:
         embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
     await ctx.respond(embed=embed)
