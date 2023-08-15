@@ -134,7 +134,7 @@ class GetEventInfo(discord.ui.Modal):
                             meeting_obj.get_link(),
                             meeting_obj.get_meeting_record_link()]
         else:
-            prefill_data = ["", "", "", "", ""]
+            prefill_data = ["", "", "", "https://discord.com/channels/1114203090950836284/1114209308910026792", ""]
 
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議標題", value=prefill_data[0],
                                            required=True))
@@ -217,7 +217,7 @@ class Absent(discord.ui.Modal):
 
 class GetEventInfoInView(discord.ui.View):
     def __init__(self, meeting_id=None):
-        super().__init__()
+        super().__init__(timeout=None)
         self.meeting_id = meeting_id
 
     @discord.ui.button(label="點此開啟會議視窗", style=discord.ButtonStyle.green, emoji="📝")
@@ -227,7 +227,7 @@ class GetEventInfoInView(discord.ui.View):
 
 class AbsentInView(discord.ui.View):
     def __init__(self, meeting_id: str):
-        super().__init__()
+        super().__init__(timeout=None)
         self.meeting_id = meeting_id
 
     @discord.ui.button(label="點此開啟請假視窗", style=discord.ButtonStyle.red, emoji="🙋")
