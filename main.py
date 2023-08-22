@@ -93,9 +93,10 @@ async def check_meeting():
         meeting_obj = json_assistant.Meeting(meeting_id)
         if meeting_obj.get_started() is False:
             if time.time() >= meeting_obj.get_start_time():
+                real_logger.info(f"會議 {meeting_id} 已經開始！")
                 meeting_obj.set_started(True)
                 embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                 f"<t:{int(meeting_obj.get_start_time())}>開始！",
+                                                                 f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                       color=default_color)
                 if meeting_obj.get_description() != "":
                     embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
@@ -110,6 +111,7 @@ async def check_meeting():
                 await m.send(embed=embed)
                 real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
             elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
+                real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
                 embed = discord.Embed(title="會議即將開始！",
                                       description=f"會議**「{meeting_obj}」**即將於<t:{int(meeting_obj.get_start_time())}:R>"
                                                   f"開始！",
@@ -144,7 +146,7 @@ class GetEventInfo(discord.ui.Modal):
             discord.ui.InputText(style=discord.InputTextStyle.short, label="開始時間(格式：YYYY/MM/DD HH:MM，24小時制)",
                                  placeholder="如：2021/01/10 12:05", min_length=16, max_length=16,
                                  value=prefill_data[2], required=True))
-        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議地點",
+        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議地點(預設為Discord - 大會)",
                                            placeholder="可貼上Meet或Discord頻道連結",
                                            value=prefill_data[3], required=True))
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議記錄連結",
@@ -177,13 +179,13 @@ class GetEventInfo(discord.ui.Modal):
             unix_start_time = time.mktime(time.strptime(self.children[2].value, "%Y/%m/%d %H:%M"))
             if unix_start_time < time.time():
                 embed = discord.Embed(title="錯誤",
-                                      description=f"輸入的開始時間(<t:{int(unix_start_time)}>)已經過去！請重新輸入。",
+                                      description=f"輸入的開始時間(<t:{int(unix_start_time)}:F>)已經過去！請重新輸入。",
                                       color=error_color)
                 await interaction.response.edit_message(embed=embed)
                 return
             else:
                 meeting_obj.set_start_time(unix_start_time)
-                embed.add_field(name="開始時間", value=f"<t:{int(unix_start_time)}>", inline=False)
+                embed.add_field(name="開始時間", value=f"<t:{int(unix_start_time)}:F>", inline=False)
         except ValueError:
             embed = discord.Embed(title="錯誤",
                                   description=f"輸入的開始時間(`{self.children[2].value}`)格式錯誤！請重新輸入。",
@@ -769,7 +771,7 @@ async def get_meeting_info(ctx,
         if meeting_obj.get_description() != "":
             embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
         embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}>", inline=False)
-        embed.add_field(name="開始時間", value=f"<t:{int(meeting_obj.get_start_time())}>", inline=False)
+        embed.add_field(name="開始時間", value=f"<t:{int(meeting_obj.get_start_time())}:F>", inline=False)
         embed.add_field(name="地點", value=meeting_obj.get_link(), inline=False)
         if meeting_obj.get_meeting_record_link() != "":
             embed.add_field(name="會議記錄", value=meeting_obj.get_meeting_record_link(), inline=False)
