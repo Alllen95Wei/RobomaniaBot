@@ -242,7 +242,8 @@ async def on_ready():
     real_logger.info("機器人準備完成！")
     real_logger.info(f"PING值：{round(bot.latency * 1000)}ms")
     real_logger.info(f"登入身分：{bot.user}")
-    activity = discord.Activity(name="GitHub", type=discord.ActivityType.watching)
+    activity = discord.Activity(name="GitHub", type=discord.ActivityType.watching,
+                                url="https://github.com/Alllen95Wei/RobomaniaBot")
     await bot.change_presence(activity=activity)
     await check_meeting.start()
 
