@@ -149,7 +149,7 @@ class Meeting:
     def get_raw_info(self):
         file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
-            with open(file, "r") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 meeting_info = json.loads(f.read())
                 return meeting_info
         else:
@@ -168,7 +168,7 @@ class Meeting:
 
     def write_raw_info(self, data):
         file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def delete(self):
