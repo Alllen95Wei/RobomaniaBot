@@ -253,7 +253,7 @@ async def on_application_command(ctx):
     real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
 
 
-member = bot.create_group(name="member", description="隊員資訊相關指令。")
+member = bot.create_group(name="member", description="隊員資訊相關指令。", name_localizations={"zh_TW": "成員", "jp": "メンバー"})
 
 
 @bot.slash_command(name="ping", description="查看機器人延遲。")
@@ -306,7 +306,8 @@ async def member_info_user(ctx, user: discord.Member):
     await member_info(ctx, user)
 
 
-member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。")
+member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。", name_localizations={"zh_TW": "管理",
+                                                                                                "jp": "管理"})
 
 
 @member_info_manage.command(name="設定真名", description="設定隊員真實姓名。")
@@ -597,7 +598,7 @@ async def member_get_all_warning_history(ctx):
     await ctx.respond(embed=embed)
 
 
-meeting = bot.create_group(name="meeting", description="會議相關指令。")
+meeting = bot.create_group(name="meeting", description="會議相關指令。", name_localizations={"zh_TW": "會議", "jp": "会議"})
 
 
 @meeting.command(name="建立", description="預定新的會議。")
