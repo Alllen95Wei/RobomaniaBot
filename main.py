@@ -105,8 +105,8 @@ async def check_meeting():
                 embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                 if meeting_obj.get_absent_members():
                     absent_members = ""
-                    for m in meeting_obj.get_absent_members():
-                        absent_members += f"<@{m[0]}> - *{m[1]}*\n"
+                    for mem in meeting_obj.get_absent_members():
+                        absent_members += f"<@{mem[0]}> - *{mem[1]}*\n"
                     embed.add_field(name="請假人員", value=absent_members, inline=False)
                 await m.send(embed=embed)
                 real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
@@ -253,7 +253,7 @@ async def on_application_command(ctx):
     real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
 
 
-member = bot.create_group(name="member", description="隊員資訊相關指令。", name_localizations={"zh_TW": "成員", "jp": "メンバー"})
+member = bot.create_group(name="member", description="隊員資訊相關指令。")
 
 
 @bot.slash_command(name="ping", description="查看機器人延遲。")
@@ -598,7 +598,7 @@ async def member_get_all_warning_history(ctx):
     await ctx.respond(embed=embed)
 
 
-meeting = bot.create_group(name="meeting", description="會議相關指令。", name_localizations={"zh_TW": "會議", "jp": "会議"})
+meeting = bot.create_group(name="meeting", description="會議相關指令。")
 
 
 @meeting.command(name="建立", description="預定新的會議。")
@@ -683,7 +683,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 3600:
             embed = discord.Embed(title="錯誤", description=f"請假需在會議一小時前處理完畢。\n"
-                                                            f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                          f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
             absent_members_id = [i[0] for i in meeting_obj.get_absent_members()]
