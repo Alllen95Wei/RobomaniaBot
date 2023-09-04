@@ -306,8 +306,7 @@ async def member_info_user(ctx, user: discord.Member):
     await member_info(ctx, user)
 
 
-member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。", name_localizations={"zh_TW": "管理",
-                                                                                                "jp": "管理"})
+member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。")
 
 
 @member_info_manage.command(name="設定真名", description="設定隊員真實姓名。")
