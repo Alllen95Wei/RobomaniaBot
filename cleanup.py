@@ -25,6 +25,11 @@ async def on_ready():
             os.remove(os.path.join(member_path, file))
             print("刪除檔案：", file)
         print("刪除完畢。")
+        message_path = os.path.join(os.path.dirname(__file__), "message_data")
+        for file in os.listdir(message_path):
+            os.remove(os.path.join(message_path, file))
+            print("刪除檔案：", file)
+        print("刪除完畢。")
     print("結束工作...")
     kill_running_bot(os.getpid(), system())
 

@@ -217,6 +217,21 @@ class Absent(discord.ui.Modal):
         await absence_meeting(interaction, self.meeting_id, self.children[0].value)
 
 
+class RespondLeaderMailbox(discord.ui.Modal):
+    class ResponseType:
+        public = "公開"
+        private = "私人"
+
+    def __init__(self, message_id: str, response_type) -> None:
+        super().__init__(title="回覆信箱訊息", timeout=None)
+        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.long, label="回覆內容", required=True))
+        self.message_id = message_id
+        self.response_type = response_type
+
+    async def callback(self, interaction: discord.Interaction):
+        await reply_to_leader_mail(interaction, self.message_id, self.children[0].value, self.response_type)
+
+
 class GetEventInfoInView(discord.ui.View):
     def __init__(self, meeting_id=None):
         super().__init__(timeout=None)
@@ -235,6 +250,22 @@ class AbsentInView(discord.ui.View):
     @discord.ui.button(label="點此開啟請假視窗", style=discord.ButtonStyle.red, emoji="🙋")
     async def button_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.send_modal(Absent(self.meeting_id))
+
+
+class RespondLeaderMailboxInView(discord.ui.View):
+    def __init__(self, message_id: str):
+        super().__init__(timeout=None)
+        self.message_id = message_id
+
+    @discord.ui.button(label="以私人訊息回覆", style=discord.ButtonStyle.green, emoji="💬")
+    async def private_respond(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(RespondLeaderMailbox(self.message_id,
+                                                                   RespondLeaderMailbox.ResponseType.private))
+
+    @discord.ui.button(label="以公開訊息回覆", style=discord.ButtonStyle.blurple, emoji="📢")
+    async def public_respond(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(RespondLeaderMailbox(self.message_id,
+                                                                   RespondLeaderMailbox.ResponseType.public))
 
 
 @bot.event
@@ -271,7 +302,8 @@ async def on_application_command_error(ctx, error):
     embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
     embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
     if isinstance(error, commands.CommandOnCooldown):
-        embed = discord.Embed(title="指令冷卻中", description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
+        embed = discord.Embed(title="指令冷卻中",
+                              description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
                               color=error_color)
         await ctx.respond(embed=embed, ephemeral=True)
     else:
@@ -393,7 +425,8 @@ warning_points_choices = [
 @member_info_manage.command(name="記點", description="記點。(對，就是記點，我希望我用不到這個指令)")
 async def member_add_warning_points(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                    記點事由: Option(str, "記點事由", choices=warning_points_choices, required=True),  # noqa
+                                    記點事由: Option(str, "記點事由", choices=warning_points_choices,  # noqa
+                                                     required=True),
                                     附註: Option(str, "附註事項", required=False)):  # noqa
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
@@ -530,8 +563,9 @@ async def member_remove_warning_points(ctx,
     await ctx.respond(embed=embed)
 
 
-@member_info_manage.command(name="改名", description="將伺服器中所有成員的名稱改為其真名。")
+@member_info_manage.command(name="全體改名", description="將伺服器中所有成員的名稱改為其真名。")
 async def member_change_name(ctx):
+    await ctx.defer()
     server = ctx.guild
     manager_role = discord.utils.get(server.roles, id=1114205838144454807)
     if manager_role in ctx.author.roles:
@@ -556,6 +590,24 @@ async def member_change_name(ctx):
     else:
         embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
     await ctx.respond(embed=embed)
+
+
+@bot.user_command(name="更改暱稱為真名")
+async def member_change_name_user(ctx, user: discord.Member):
+    server = ctx.guild
+    manager_role = discord.utils.get(server.roles, id=1114205838144454807)
+    if manager_role in ctx.author.roles:
+        member_onj = json_assistant.User(user.id)
+        real_name = member_onj.get_real_name()
+        if real_name:
+            await user.edit(nick=real_name)
+            embed = discord.Embed(title="改名", description=f"已將 {user.mention} 的名稱改為其真名({real_name})。",
+                                  color=default_color)
+        else:
+            embed = discord.Embed(title="改名", description=f"{user.mention} 沒有設定真名！", color=error_color)
+    else:
+        embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
+    await ctx.respond(embed=embed, ephemeral=True)
 
 
 @member.command(name="個人記點紀錄", description="查詢記點紀錄。")
@@ -784,6 +836,99 @@ async def get_meeting_info(ctx,
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="隊長信箱", description="匿名寄送訊息給隊長。")
+async def send_message_to_leader(ctx,
+                                 訊息: Option(str, "訊息內容", required=True)):  # noqa
+    mail_id = json_assistant.Message.create_new_message()
+    mail = json_assistant.Message(mail_id)
+    data = {
+        "author": ctx.author.id,
+        "time": time.time(),
+        "content": 訊息,
+        "replied": False,
+        "response": ""
+    }
+    mail.write_raw_info(data)
+    mail_embed = discord.Embed(title="隊長信箱", description=f"來自 {ctx.author.mention} 的訊息！", color=default_color)
+    mail_embed.add_field(name="訊息ID", value=f"`{mail_id}`", inline=False)
+    mail_embed.add_field(name="傳送時間", value=f"<t:{int(time.time())}:F>", inline=False)
+    mail_embed.add_field(name="訊息內容", value=訊息, inline=False)
+    mail_embed.set_thumbnail(url=ctx.author.display_avatar)
+    mail_embed.set_footer(text="如果要回覆此訊息，請點選下方的按鈕。")
+    mailbox_channel = bot.get_channel(1149274793917558814)
+    await mailbox_channel.send(embed=mail_embed, view=RespondLeaderMailboxInView(mail_id))
+    embed = discord.Embed(title="隊長信箱", description=f"你的訊息已經傳送給隊長。", color=default_color)
+    embed.add_field(name="訊息內容", value=訊息, inline=False)
+    embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
+                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+    embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
+                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+    await ctx.respond(embed=embed, ephemeral=True)
+
+
+@bot.slash_command(name="隊長信箱回覆", description="(隊長限定)回覆隊長信箱的訊息。")
+async def reply_to_leader_mail(ctx,
+                               回覆訊息id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),  # noqa
+                               回覆訊息: Option(str, "回覆的訊息內容", required=True),  # noqa
+                               回覆類型: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"], required=True)):  # noqa
+    try:
+        await ctx.defer()
+    except AttributeError:
+        await ctx.response.defer()
+    leader = bot.get_user(940410723127934986)
+    try:
+        author = ctx.author
+    except AttributeError:
+        author = ctx.user
+    if author == leader:
+        if 回覆訊息id in json_assistant.Message.get_all_message_id():
+            mail = json_assistant.Message(回覆訊息id)
+            if mail.get_replied():
+                embed = discord.Embed(title="錯誤", description="這則訊息已被回覆。", color=error_color)
+                embed.add_field(name="你的回覆", value=mail.get_response())
+            else:
+                response_embed = discord.Embed(title="隊長信箱回覆", description=f"隊長回覆了信箱中的訊息！",
+                                               color=default_color)
+                response_embed.add_field(name="你的訊息內容", value=mail.get_content(), inline=False)
+                response_embed.add_field(name="隊長的回覆內容", value=回覆訊息, inline=False)
+                if 回覆類型 == "公開":
+                    response_channel = bot.get_channel(1152158914847199312)
+                    await response_channel.send(embed=response_embed)
+                    embed = discord.Embed(title="回覆成功！",
+                                          description=f"已將你的回覆傳送到{response_channel.mention}。",
+                                          color=default_color)
+                    embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
+                    embed.add_field(name="你的回覆內容", value=回覆訊息, inline=False)
+                elif 回覆類型 == "私人":
+                    sender = bot.get_user(mail.get_author())
+                    try:
+                        await sender.send(embed=response_embed)
+                        embed = discord.Embed(title="回覆成功！", description=f"已將你的回覆傳送給{sender.mention}。",
+                                              color=default_color)
+                        embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
+                        embed.add_field(name="你的回覆內容", value=回覆訊息, inline=False)
+                    except discord.errors.HTTPException as error:
+                        if error.code == 50007:
+                            embed = discord.Embed(title="錯誤",
+                                                  description=f"{sender.mention} 不允許機器人傳送私人訊息。",
+                                                  color=error_color)
+                        else:
+                            raise error
+                else:
+                    embed = discord.Embed(title="錯誤", description=f"所指定的回覆類型 (`{回覆類型}`) 不存在！")
+                mail.set_replied(True)
+                mail.set_response(回覆訊息)
+        else:
+            embed = discord.Embed(title="錯誤", description=f"訊息 `{回覆訊息id}` 不存在！", color=error_color)
+    else:
+        embed = discord.Embed(title="錯誤", description=f"你不是隊長，無法使用此指令！", color=error_color)
+    try:
+        await ctx.respond(embed=embed, ephemeral=True)
+    except AttributeError:
+        await ctx.followup.send(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="screenshot", description="在機器人伺服器端截圖。")

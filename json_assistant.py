@@ -260,3 +260,95 @@ class Meeting:
         meeting_info = self.get_raw_info()
         meeting_info["meeting_record_link"] = link
         self.write_raw_info(meeting_info)
+
+
+class Message:
+    def __init__(self, message_id):
+        self.message_id = message_id
+
+    @staticmethod
+    def create_new_message():
+        while True:
+            random_char_list = [choice(hexdigits) for i in range(5)]
+            random_char = "".join(random_char_list)
+            file = os.path.join(file_dir, "message_data", random_char + ".json")
+            if not os.path.exists(file):
+                break
+        empty_data = Message(random_char).get_raw_info()
+        Message(random_char).write_raw_info(empty_data)
+        return random_char
+
+    @staticmethod
+    def get_all_message_id():
+        file = os.path.join(file_dir, "message_data")
+        return [i.split(".")[0] for i in os.listdir(file)]
+
+    def get_raw_info(self):
+        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        if os.path.exists(file):
+            with open(file, "r", encoding="utf-8") as f:
+                message_info = json.loads(f.read())
+                return message_info
+        else:
+            empty_data = {
+                "author": "",
+                "time": "",
+                "content": "",
+                "replied": False,
+                "response": ""
+            }
+            return empty_data
+
+    def write_raw_info(self, data):
+        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        with open(file, "w", encoding="utf-8") as fm:
+            json.dump(data, fm, indent=2, ensure_ascii=False)
+
+    def delete(self):
+        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        os.remove(file)
+
+    def get_author(self):
+        message_info = self.get_raw_info()
+        return message_info["author"]
+
+    def set_author(self, author):
+        message_info = self.get_raw_info()
+        message_info["author"] = author
+        self.write_raw_info(message_info)
+
+    def get_time(self):
+        message_info = self.get_raw_info()
+        return message_info["time"]
+
+    def set_time(self, time):
+        message_info = self.get_raw_info()
+        message_info["time"] = time
+        self.write_raw_info(message_info)
+
+    def get_content(self):
+        message_info = self.get_raw_info()
+        return message_info["content"]
+
+    def set_content(self, content):
+        message_info = self.get_raw_info()
+        message_info["content"] = content
+        self.write_raw_info(message_info)
+
+    def get_replied(self) -> bool:
+        message_info = self.get_raw_info()
+        return message_info["replied"]
+
+    def set_replied(self, replied: bool):
+        message_info = self.get_raw_info()
+        message_info["replied"] = replied
+        self.write_raw_info(message_info)
+
+    def get_response(self):
+        message_info = self.get_raw_info()
+        return message_info["response"]
+
+    def set_response(self, response):
+        message_info = self.get_raw_info()
+        message_info["response"] = response
+        self.write_raw_info(message_info)
