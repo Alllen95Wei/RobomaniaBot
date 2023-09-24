@@ -15,6 +15,7 @@ from platform import system
 import re
 
 import json_assistant
+import detect_pc_status
 
 # 機器人
 intents = discord.Intents.all()
@@ -929,6 +930,14 @@ async def reply_to_leader_mail(ctx,
         await ctx.respond(embed=embed, ephemeral=True)
     except AttributeError:
         await ctx.followup.send(embed=embed, ephemeral=True)
+
+
+@bot.slash_command(name="dps", description="查詢伺服器電腦的CPU及記憶體使用率。")
+async def dps(ctx):
+    embed = discord.Embed(title="伺服器電腦資訊", color=default_color)
+    embed.add_field(name="CPU使用率", value=f"{detect_pc_status.get_cpu_usage()}%")
+    embed.add_field(name="記憶體使用率", value=f"{detect_pc_status.get_ram_usage_detail()}")
+    await ctx.respond(embed=embed)
 
 
 @bot.slash_command(name="screenshot", description="在機器人伺服器端截圖。")
