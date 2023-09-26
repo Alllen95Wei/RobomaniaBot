@@ -301,7 +301,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_application_command_error(ctx, error):
-    embed = discord.Embed(title="錯誤", description=f"發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
+    embed = discord.Embed(title="錯誤", description="發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
     embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
     embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
     embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
@@ -359,7 +359,7 @@ async def member_set_real_name(ctx,
                               color=default_color)
         embed.set_thumbnail(url=隊員.display_avatar)
     else:
-        embed = discord.Embed(title="設定真實姓名", description=f"你沒有權限設定真實姓名！",
+        embed = discord.Embed(title="設定真實姓名", description="你沒有權限設定真實姓名！",
                               color=error_color)
     await ctx.respond(embed=embed)
 
@@ -377,7 +377,7 @@ async def member_add_job(ctx,
                               color=default_color)
         embed.set_thumbnail(url=隊員.display_avatar)
     else:
-        embed = discord.Embed(title="新增職務", description=f"你沒有權限新增職務！", color=error_color)
+        embed = discord.Embed(title="新增職務", description="你沒有權限新增職務！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -394,7 +394,7 @@ async def member_remove_job(ctx,
                               color=default_color)
         embed.set_thumbnail(url=隊員.display_avatar)
     else:
-        embed = discord.Embed(title="移除職務", description=f"你沒有權限移除職務！", color=error_color)
+        embed = discord.Embed(title="移除職務", description="你沒有權限移除職務！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -411,7 +411,7 @@ async def member_add_meeting_time(ctx,
                               color=default_color)
         embed.set_thumbnail(url=隊員.display_avatar)
     else:
-        embed = discord.Embed(title="新增會議時數", description=f"你沒有權限新增會議時數！", color=error_color)
+        embed = discord.Embed(title="新增會議時數", description="你沒有權限新增會議時數！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -485,14 +485,14 @@ async def member_add_warning_points(ctx,
             warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
             embed_list.append(warning_msg)
     else:
-        embed = discord.Embed(title="記點", description=f"你沒有權限記點！", color=error_color)
+        embed = discord.Embed(title="記點", description="你沒有權限記點！", color=error_color)
         embed_list = [embed]
     await ctx.respond(embeds=embed_list)
 
 
 @member_info_manage.command(name="意外記銷點",
                             description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
-async def member_add_warning_points(ctx,
+async def member_add_warning_points_with_exceptions(ctx,
                                     隊員: Option(discord.Member, "隊員", required=True),  # noqa
                                     點數: Option(float, "點數", required=True),  # noqa
                                     事由: Option(str, "事由", required=True)):  # noqa
@@ -519,7 +519,7 @@ async def member_add_warning_points(ctx,
             warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
             embed_list.append(warning_msg)
     else:
-        embed = discord.Embed(title="意外記/銷點", description=f"你沒有權限記/銷點！", color=error_color)
+        embed = discord.Embed(title="意外記/銷點", description="你沒有權限記/銷點！", color=error_color)
         embed_list = [embed]
     await ctx.respond(embeds=embed_list)
 
@@ -564,7 +564,7 @@ async def member_remove_warning_points(ctx,
             embed.add_field(name="附註事項", value=附註, inline=False)
         embed.set_thumbnail(url=隊員.display_avatar)
     else:
-        embed = discord.Embed(title="銷點", description=f"你沒有權限銷點！", color=error_color)
+        embed = discord.Embed(title="銷點", description="你沒有權限銷點！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -593,7 +593,7 @@ async def member_change_name(ctx):
         if failed != "":
             embed.add_field(name="改名失敗的成員", value=failed if failed else "無", inline=False)
     else:
-        embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
+        embed = discord.Embed(title="改名", description="你沒有權限改名！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -611,7 +611,7 @@ async def member_change_name_user(ctx, user: discord.Member):
         else:
             embed = discord.Embed(title="改名", description=f"{user.mention} 沒有設定真名！", color=error_color)
     else:
-        embed = discord.Embed(title="改名", description=f"你沒有權限改名！", color=error_color)
+        embed = discord.Embed(title="改名", description="你沒有權限改名！", color=error_color)
     await ctx.respond(embed=embed, ephemeral=True)
 
 
@@ -665,7 +665,7 @@ async def create_new_meeting(ctx):
         embed = discord.Embed(title="預定會議", description="請點擊下方的按鈕，開啟會議預定視窗。", color=default_color)
         await ctx.respond(embed=embed, view=GetEventInfoInView(), ephemeral=True)
     else:
-        embed = discord.Embed(title="銷點", description=f"你沒有權限預定會議！", color=error_color)
+        embed = discord.Embed(title="銷點", description="你沒有權限預定會議！", color=error_color)
         await ctx.respond(embed=embed)
 
 
@@ -680,7 +680,7 @@ async def edit_meeting(ctx, 會議id: Option(str, "欲修改的會議ID", min_le
                                   color=default_color)
             await ctx.respond(embed=embed, view=GetEventInfoInView(會議id), ephemeral=True)
         else:
-            embed = discord.Embed(title="錯誤", description=f"你沒有權限編輯會議！", color=error_color)
+            embed = discord.Embed(title="錯誤", description="你沒有權限編輯會議！", color=error_color)
             await ctx.respond(embed=embed)
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
@@ -711,7 +711,7 @@ async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_
                 meeting_obj.delete()
                 embed = discord.Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。", color=default_color)
         else:
-            embed = discord.Embed(title="錯誤", description=f"你沒有權限刪除會議！", color=error_color)
+            embed = discord.Embed(title="錯誤", description="你沒有權限刪除會議！", color=error_color)
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
@@ -738,7 +738,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
         if meeting_obj.get_started():
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 3600:
-            embed = discord.Embed(title="錯誤", description=f"請假需在會議一小時前處理完畢。\n"
+            embed = discord.Embed(title="錯誤", description="請假需在會議一小時前處理完畢。\n"
                                                           f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
@@ -864,7 +864,7 @@ async def send_message_to_leader(ctx,
     mail_embed.set_footer(text="如果要回覆此訊息，請點選下方的按鈕。")
     mailbox_channel = bot.get_channel(1149274793917558814)
     await mailbox_channel.send(embed=mail_embed, view=RespondLeaderMailboxInView(mail_id))
-    embed = discord.Embed(title="隊長信箱", description=f"你的訊息已經傳送給隊長。", color=default_color)
+    embed = discord.Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
                                                 "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
@@ -895,7 +895,7 @@ async def reply_to_leader_mail(ctx,
                 embed = discord.Embed(title="錯誤", description="這則訊息已被回覆。", color=error_color)
                 embed.add_field(name="你的回覆", value=mail.get_response())
             else:
-                response_embed = discord.Embed(title="隊長信箱回覆", description=f"隊長回覆了信箱中的訊息！",
+                response_embed = discord.Embed(title="隊長信箱回覆", description="隊長回覆了信箱中的訊息！",
                                                color=default_color)
                 response_embed.add_field(name="你的訊息內容", value=mail.get_content(), inline=False)
                 response_embed.add_field(name="隊長的回覆內容", value=回覆訊息, inline=False)
@@ -929,7 +929,7 @@ async def reply_to_leader_mail(ctx,
         else:
             embed = discord.Embed(title="錯誤", description=f"訊息 `{回覆訊息id}` 不存在！", color=error_color)
     else:
-        embed = discord.Embed(title="錯誤", description=f"你不是隊長，無法使用此指令！", color=error_color)
+        embed = discord.Embed(title="錯誤", description="你不是隊長，無法使用此指令！", color=error_color)
     try:
         await ctx.respond(embed=embed, ephemeral=True)
     except AttributeError:
@@ -967,7 +967,7 @@ async def screenshot(ctx,
 
 @bot.slash_command(name="update", description="更新機器人。")
 async def update(ctx,
-                 私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa: PEP 3131
+                 私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa
     if ctx.author == bot.get_user(657519721138094080):
         embed = discord.Embed(title="更新中", description="更新流程啟動。", color=default_color)
         await ctx.respond(embed=embed, ephemeral=私人訊息)
@@ -976,7 +976,7 @@ async def update(ctx,
         upd.update(os.getpid(), system())
     else:
         embed = discord.Embed(title="錯誤", description="你沒有權限使用此指令。", color=error_color)
-        私人訊息 = True  # noqa: PEP 3131
+        私人訊息 = True  # noqa
         await ctx.respond(embed=embed, ephemeral=私人訊息)
 
 
