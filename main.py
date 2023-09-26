@@ -91,38 +91,42 @@ async def check_meeting():
     meeting_id_list = json_assistant.Meeting.get_all_meeting_id()
     m = bot.get_channel(1128232150135738529)
     for meeting_id in meeting_id_list:
-        meeting_obj = json_assistant.Meeting(meeting_id)
-        if meeting_obj.get_started() is False:
-            if time.time() >= meeting_obj.get_start_time():
-                real_logger.info(f"會議 {meeting_id} 已經開始！")
-                meeting_obj.set_started(True)
-                embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                 f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
-                                      color=default_color)
-                if meeting_obj.get_description() != "":
-                    embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
-                embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                  f"({bot.get_user(meeting_obj.get_host())})", inline=False)
-                embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
-                if meeting_obj.get_absent_members():
-                    absent_members = ""
-                    for mem in meeting_obj.get_absent_members():
-                        absent_members += f"<@{mem[0]}> - *{mem[1]}*\n"
-                    embed.add_field(name="請假人員", value=absent_members, inline=False)
-                await m.send(embed=embed)
-                real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
-            elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
-                real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
-                embed = discord.Embed(title="會議即將開始！",
-                                      description=f"會議**「{meeting_obj}」**即將於<t:{int(meeting_obj.get_start_time())}:R>"
-                                                  f"開始！",
-                                      color=default_color)
-                if meeting_obj.get_description() != "":
-                    embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
-                embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
-                await m.send(content="@everyone", embed=embed)
-                meeting_obj.set_notified(True)
-                real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
+        try:
+            meeting_obj = json_assistant.Meeting(meeting_id)
+            if meeting_obj.get_started() is False:
+                if time.time() >= meeting_obj.get_start_time():
+                    real_logger.info(f"會議 {meeting_id} 已經開始！")
+                    meeting_obj.set_started(True)
+                    embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
+                                                                         f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                          color=default_color)
+                    if meeting_obj.get_description() != "":
+                        embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
+                    embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
+                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                    embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
+                    if meeting_obj.get_absent_members():
+                        absent_members = ""
+                        for mem in meeting_obj.get_absent_members():
+                            absent_members += f"<@{mem[0]}> - *{mem[1]}*\n"
+                        embed.add_field(name="請假人員", value=absent_members, inline=False)
+                    await m.send(embed=embed)
+                    real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
+                elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
+                    real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
+                    embed = discord.Embed(title="會議即將開始！",
+                                          description=f"會議**「{meeting_obj}」**即將於<t:{int(meeting_obj.get_start_time())}:R>"
+                                                      f"開始！",
+                                          color=default_color)
+                    if meeting_obj.get_description() != "":
+                        embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
+                    embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
+                    await m.send(content="@everyone", embed=embed)
+                    meeting_obj.set_notified(True)
+                    real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
+        except Exception as e:  # noqa
+            real_logger.error(f"檢查會議 {meeting_id} 時發生錯誤！{e}")
+            pass
 
 
 class GetEventInfo(discord.ui.Modal):
