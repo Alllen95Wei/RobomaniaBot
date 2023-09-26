@@ -98,12 +98,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                         f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                                     f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                           color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -115,8 +115,8 @@ async def check_meeting():
                 elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
                     real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
                     embed = discord.Embed(title="會議即將開始！",
-                                          description=f"會議**「{meeting_obj}」**即將於<t:{int(meeting_obj.get_start_time())}:R>"
-                                                      f"開始！",
+                                          description=f"會議**「{meeting_obj}」**即將於"
+                                                      f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                           color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
