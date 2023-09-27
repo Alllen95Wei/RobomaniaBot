@@ -110,7 +110,7 @@ async def check_meeting():
                         for mem in meeting_obj.get_absent_members():
                             absent_members += f"<@{mem[0]}> - *{mem[1]}*\n"
                         embed.add_field(name="請假人員", value=absent_members, inline=False)
-                    await m.send(embed=embed)
+                    await m.send(content="@everyone", embed=embed)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
                 elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
                     real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
@@ -124,8 +124,8 @@ async def check_meeting():
                     await m.send(content="@everyone", embed=embed)
                     meeting_obj.set_notified(True)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
-        except Exception as e:  # noqa
-            real_logger.error(f"檢查會議 {meeting_id} 時發生錯誤！{e}")
+        except TypeError as e:
+            real_logger.warning(f"檢查會議 {meeting_id} 時發生錯誤，跳過此會議。({e})")
             pass
 
 
