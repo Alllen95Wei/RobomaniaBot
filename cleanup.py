@@ -30,6 +30,10 @@ async def on_ready():
             os.remove(os.path.join(message_path, file))
             print("刪除檔案：", file)
         print("刪除完畢。")
+        archived_meeting_path = os.path.join(os.path.dirname(__file__), "archived", "meeting")
+        for file in os.listdir(archived_meeting_path):
+            os.remove(os.path.join(archived_meeting_path, file))
+            print("刪除檔案：", file)
     print("結束工作...")
     kill_running_bot(os.getpid(), system())
 
