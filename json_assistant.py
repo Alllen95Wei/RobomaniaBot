@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import datetime
 from string import hexdigits
 from random import choice
@@ -174,6 +175,13 @@ class Meeting:
     def delete(self):
         file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
         os.remove(file)
+
+    def archive(self):
+        file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
+        if os.path.exists(file):
+            shutil.move(file, os.path.join(file_dir, "archived", "meeting", str(self.event_id) + ".json"))
+        else:
+            raise FileNotFoundError("File not found.")
 
     def get_name(self):
         meeting_info = self.get_raw_info()

@@ -85,7 +85,7 @@ class CreateLogger:
 real_logger = CreateLogger()
 
 
-@tasks.loop(seconds=1)
+@tasks.loop(seconds=5)
 async def check_meeting():
     real_logger.debug("開始檢查會議時間...")
     meeting_id_list = json_assistant.Meeting.get_all_meeting_id()
@@ -124,6 +124,9 @@ async def check_meeting():
                     await m.send(content="@everyone", embed=embed)
                     meeting_obj.set_notified(True)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
+            elif meeting_obj.get_started() and time.time() - meeting_obj.get_start_time() >= 172800:
+                meeting_obj.archive()
+                real_logger.info(f"會議 {meeting_id} 距離開始時間已超過2天，已將其封存。")
         except TypeError as e:
             real_logger.warning(f"檢查會議 {meeting_id} 時發生錯誤，跳過此會議。({e})")
             pass

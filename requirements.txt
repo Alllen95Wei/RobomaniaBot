@@ -1,6 +1,7 @@
-py-cord
-python-dotenv
+py-cord==2.4.1
+python-dotenv==1.0.0
 tzdata
-colorlog
-pillow
-psutil
+colorlog==6.7.0
+pillow==10.0.0
+psutil==5.9.5
+customtkinter==5.2.0
