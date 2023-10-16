@@ -427,6 +427,7 @@ warning_points_choices = [
     "1點 - 無故遲交文件超過一天",
     "2點 - 上課/工作時滑手機",
     "2點 - 打遊戲太吵",
+    "2點 - 操作不當導致公安意外",
     "3點 - 嚴重影響隊伍形象"]
 
 
@@ -463,6 +464,9 @@ async def member_add_warning_points(ctx,
             member_data.add_warning_points(2, reason, 附註)
             points = 2
         elif 記點事由 == "2點 - 打遊戲太吵":
+            member_data.add_warning_points(2, reason, 附註)
+            points = 2
+        elif 記點事由 == "2點 - 操作不當導致公安意外":
             member_data.add_warning_points(2, reason, 附註)
             points = 2
         elif 記點事由 == "3點 - 嚴重影響隊伍形象":
