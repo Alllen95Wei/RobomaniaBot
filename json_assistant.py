@@ -12,10 +12,23 @@ class User:
     def __init__(self, user_id: int):
         self.user_id = user_id
 
+    # @staticmethod
+    # def __index_using_real_name():
+    #     index_dict = {}
+    #     for user in os.listdir(os.path.join(file_dir, "member_data")):
+    #         user_id = user.split(".")[0]
+    #         user = User(int(user_id))
+    #         index_dict[user.get_real_name()] = user_id
+    #     return index_dict
+    #
+    # @staticmethod
+    # def real_name_index():
+    #     return User.__index_using_real_name()
+
     def get_raw_info(self):
         file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
         if os.path.exists(file):
-            with open(file, "r") as f:
+            with open(file, "r", encoding="big5") as f:
                 user_info = json.loads(f.read())
                 return user_info
         else:
