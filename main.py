@@ -16,6 +16,7 @@ import re
 
 import json_assistant
 import detect_pc_status
+import arduino_reader
 
 # 機器人
 intents = discord.Intents.all()
@@ -304,19 +305,21 @@ async def ping(ctx):
 
 @bot.event
 async def on_application_command_error(ctx, error):
-    embed = discord.Embed(title="錯誤", description="發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
-    embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
-    embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
-    embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
-    embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
     if isinstance(error, commands.CommandOnCooldown):
         embed = discord.Embed(title="指令冷卻中",
                               description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
                               color=error_color)
         await ctx.respond(embed=embed, ephemeral=True)
     else:
+        embed = discord.Embed(title="錯誤", description="發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
+        embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
+        embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
+        embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
+        embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
         allen = bot.get_user(657519721138094080)
         await allen.send(embed=embed)
+        embed = discord.Embed(title="錯誤", description="發生了一個錯誤，已經通知開發者。", color=error_color)
+        await ctx.respond(embed=embed, ephemeral=True)
         raise error
 
 
@@ -941,6 +944,22 @@ async def reply_to_leader_mail(ctx,
         await ctx.respond(embed=embed, ephemeral=True)
     except AttributeError:
         await ctx.followup.send(embed=embed, ephemeral=True)
+
+
+# @bot.slash_command(name="查詢工作室環境", description="取得工作室目前濕度及溫度。")
+# async def get_workshop_environment(ctx):
+#     ar = arduino_reader.ArduinoReader()
+#     ar.read()
+#     embed = discord.Embed(title="工作室環境", description=ar.get_raw(), color=default_color)
+#     embed.add_field(name="濕度", value=f"{ar.humidity()}%", inline=True)
+#     embed.add_field(name="溫度", value=f"{ar.temperature()}°C", inline=True)
+#     await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="轉換編碼", description="將檔案轉換編碼為UTF-8。")
+@commands.is_owner()
+async def convert_encoding(ctx):
+    json_assistant.User.convert_big5_to_utf8()
 
 
 @bot.slash_command(name="dps", description="查詢伺服器電腦的CPU及記憶體使用率。")

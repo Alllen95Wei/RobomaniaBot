@@ -25,10 +25,25 @@ class User:
     # def real_name_index():
     #     return User.__index_using_real_name()
 
+    @staticmethod
+    def __get_all_user_id():
+        file = os.path.join(file_dir, "member_data")
+        return [i.split(".")[0] for i in os.listdir(file)]
+
+    @staticmethod
+    def convert_big5_to_utf8():
+        user_list = User.__get_all_user_id()
+        for user in user_list:
+            file = os.path.join(file_dir, "member_data", user + ".json")
+            with open(file, "r", encoding="big5") as f:
+                raw_data = f.read()
+            with open(file, "w", encoding="utf-8") as f:
+                f.write(raw_data)
+
     def get_raw_info(self):
         file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
         if os.path.exists(file):
-            with open(file, "r", encoding="big5") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 user_info = json.loads(f.read())
                 return user_info
         else:
@@ -43,7 +58,7 @@ class User:
 
     def write_raw_info(self, data):
         file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def get_real_name(self):
@@ -118,7 +133,7 @@ class User:
     def get_all_warning_history():
         file = os.path.join(file_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
-            with open(file, "r") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 return json.loads(f.read())
         else:
             return []
@@ -127,12 +142,12 @@ class User:
     def add_warning_history(user_id, points: [float, int], reason: str, note: str = None):
         file = os.path.join(file_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
-            with open(file, "r") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 history = json.loads(f.read())
         else:
             history = []
         history.append([user_id, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), reason, points, note])
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2, ensure_ascii=False)
 
 
