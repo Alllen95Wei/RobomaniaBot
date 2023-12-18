@@ -16,7 +16,7 @@ import re
 
 import json_assistant
 import detect_pc_status
-import arduino_reader
+# import arduino_reader
 
 # 機器人
 intents = discord.Intents.all()
