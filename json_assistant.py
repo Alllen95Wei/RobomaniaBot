@@ -34,11 +34,15 @@ class User:
     def convert_big5_to_utf8():
         user_list = User.__get_all_user_id()
         for user in user_list:
-            file = os.path.join(file_dir, "member_data", user + ".json")
-            with open(file, "r", encoding="big5") as f:
-                raw_data = f.read()
-            with open(file, "w", encoding="utf-8") as f:
-                f.write(raw_data)
+            try:
+                file = os.path.join(file_dir, "member_data", user + ".json")
+                with open(file, "r", encoding="big5") as f:
+                    raw_data = f.read()
+                with open(file, "w", encoding="utf-8") as f:
+                    f.write(raw_data)
+            except UnicodeDecodeError:
+                print(f"Error occurred when converting {user}.json from big5 to utf-8.")
+                pass
 
     def get_raw_info(self):
         file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
