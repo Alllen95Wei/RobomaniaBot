@@ -5,3 +5,4 @@ colorlog==6.7.0
 pillow==10.0.1
 psutil==5.9.5
 customtkinter==5.2.0
+gitpython==3.1.40
