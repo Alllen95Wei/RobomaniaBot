@@ -911,7 +911,7 @@ async def convert_encoding(ctx):
 @commands.is_owner()
 async def debug(ctx):
     embed = discord.Embed(title="除錯資訊", description="目前資訊如下：", color=default_color)
-    embed.add_field(name="Time", value=f"<t:{time.time()}> ({time.time()})")
+    embed.add_field(name="Time", value=f"<t:{int(time.time())}> ({time.time()})")
     embed.add_field(name="Version", value=git.Repo(search_parent_directories=True).head.object.hexsha)
     await ctx.respond(embed=embed)
 
