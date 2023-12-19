@@ -27,8 +27,6 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 now_tz = zoneinfo.ZoneInfo("Asia/Taipei")
 default_color = 0x012a5e
 error_color = 0xF1411C
-server = bot.get_guild(1114203090950836284)
-manager_role = discord.utils.get(server.roles, id=1114205838144454807)
 # 載入TOKEN
 load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
 TOKEN = str(os.getenv("TOKEN"))
@@ -558,6 +556,7 @@ async def member_change_name(ctx):
     embed = discord.Embed(title="改名", description="已將伺服器中所有成員的名稱改為其真名。", color=default_color)
     no_real_name = ""
     failed = ""
+    server = bot.get_guild(1114203090950836284)
     for m in server.members:
         real_name = json_assistant.User(m.id).get_real_name()
         real_logger.info(f"正在改名 {m} 為真名({real_name})")
