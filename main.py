@@ -564,7 +564,6 @@ async def member_change_name(ctx):
                 await m.edit(nick=real_name)
             except discord.Forbidden:
                 failed += f"{m.mention} "
-                pass
         else:
             no_real_name += f"{m.mention} "
     if no_real_name != "":
