@@ -131,7 +131,6 @@ async def check_meeting():
                 real_logger.info(f"會議 {meeting_id} 距離開始時間已超過2天，已將其封存。")
         except TypeError as e:
             real_logger.warning(f"檢查會議 {meeting_id} 時發生錯誤，跳過此會議。({e})")
-            pass
 
 
 class GetEventInfo(discord.ui.Modal):
@@ -726,7 +725,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
                         absent_members_str += f"<@{m[0]}> - *{m[1]}*\n"
                     absent_record_embed.add_field(name="請假人員", value=absent_members_str, inline=False)
                 await absent_record_channel.send(embed=absent_record_embed)
-                embed = discord.Embed(title="請假成功", description=f"你已經成功請假。", color=default_color)
+                embed = discord.Embed(title="請假成功", description="你已經成功請假。", color=default_color)
                 embed.add_field(name="會議ID", value=f"`{會議id}`", inline=False)
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
@@ -906,6 +905,15 @@ async def reply_to_leader_mail(ctx,
 @commands.is_owner()
 async def convert_encoding(ctx):
     json_assistant.User.convert_big5_to_utf8()
+
+
+@bot.slash_command(name="debug", description="(開發者專用)除錯用")
+@commands.is_owner()
+async def debug(ctx):
+    embed = discord.Embed(title="除錯資訊", description="目前資訊如下：", color=default_color)
+    embed.add_field(name="Time", value=f"<t:{time.time()}> ({time.time()})")
+    embed.add_field(name="Version", value=git.Repo(search_parent_directories=True).head.object.hexsha)
+    await ctx.respond(embed=embed)
 
 
 @bot.slash_command(name="about", description="Provides information about this robot.",

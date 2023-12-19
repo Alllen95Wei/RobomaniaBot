@@ -42,7 +42,6 @@ class User:
                     f.write(raw_data)
             except UnicodeDecodeError:
                 print(f"Error occurred when converting {user}.json from big5 to utf-8.")
-                pass
 
     def get_raw_info(self):
         file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
