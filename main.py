@@ -98,7 +98,7 @@ async def check_meeting():
         try:
             meeting_obj = json_assistant.Meeting(meeting_id)
             if meeting_obj.get_started() is False:
-                if time.time() >= meeting_obj.get_start_time():  # TODO: 處理時區問題
+                if time.time() >= meeting_obj.get_start_time():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
@@ -187,7 +187,8 @@ class GetEventInfo(discord.ui.Modal):
             embed.add_field(name="簡介", value=self.children[1].value, inline=False)
         embed.add_field(name="主持人", value=interaction.user.mention, inline=False)
         try:
-            unix_start_time = time.mktime(time.strptime(self.children[2].value, "%Y/%m/%d %H:%M"))
+            unix_start_time = datetime.datetime.timestamp(
+                datetime.datetime.strptime(self.children[2].value, "%Y/%m/%d %H:%M").replace(tzinfo=now_tz))
             if unix_start_time < time.time():
                 embed = discord.Embed(title="錯誤",
                                       description=f"輸入的開始時間(<t:{int(unix_start_time)}:F>)已經過去！請重新輸入。",
