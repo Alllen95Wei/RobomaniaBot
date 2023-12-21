@@ -9,6 +9,8 @@ from discord.ext import commands
 from discord.ext import tasks
 from discord import Option
 import os
+from shlex import split
+from subprocess import run
 from dotenv import load_dotenv
 from platform import system
 import re
@@ -971,6 +973,47 @@ async def update(ctx,
     event = discord.Activity(type=discord.ActivityType.playing, name="更新中...")
     await bot.change_presence(status=discord.Status.idle, activity=event)
     upd.update(os.getpid(), system())
+
+
+@bot.slash_command(name="cmd", description="在伺服器端執行指令並傳回結果。")
+@commands.is_owner()
+async def cmd(ctx,
+              指令: Option(str, "要執行的指令", required=True),  # noqa: PEP 3131
+              執行模組: Option(str, choices=["subprocess", "os"], description="執行指令的模組",  # noqa: PEP 3131
+                           required=False) = "subprocess",
+              私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa: PEP 3131
+    try:
+        await ctx.defer(ephemeral=私人訊息)
+        command = split(指令)
+        if command[0] == "cmd":
+            embed = discord.Embed(title="錯誤", description="基於安全原因，你不能執行這個指令。", color=error_color)
+            await ctx.respond(embed=embed, ephemeral=私人訊息)
+            return
+        if 執行模組 == "subprocess":
+            result = str(run(command, capture_output=True, text=True).stdout)
+        else:
+            result = str(os.popen(指令).read())
+        if result != "":
+            embed = discord.Embed(title="執行結果", description=f"```{result}```", color=default_color)
+        else:
+            embed = discord.Embed(title="執行結果", description="終端未傳回回應。", color=default_color)
+    except WindowsError as e:
+        if e.winerror == 2:
+            embed = discord.Embed(title="錯誤", description="找不到指令。請嘗試更換執行模組。", color=error_color)
+        else:
+            embed = discord.Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
+    except Exception as e:
+        embed = discord.Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
+    try:
+        await ctx.respond(embed=embed, ephemeral=私人訊息)
+    except discord.errors.HTTPException as HTTPError:
+        if "fewer in length" in str(HTTPError):
+            txt_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "full_msg.txt")
+            with open(txt_file_path, "w") as file:
+                file.write(str(result))  # noqa
+            await ctx.respond("由於訊息長度過長，因此改以文字檔方式呈現。", file=discord.File(txt_file_path),
+                              ephemeral=私人訊息)
+            os.remove(txt_file_path)
 
 
 bot.run(TOKEN)
