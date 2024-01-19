@@ -724,7 +724,8 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
                 if meeting_obj.get_absent_members():
                     absent_members_str = ""
                     for m in meeting_obj.get_absent_members():
-                        absent_members_str += f"<@{m[0]}> - *{m[1]}*\n"
+                        member_real_name = json_assistant.User(m[0]).get_real_name()
+                        absent_members_str += f"<@{m[0]}>({member_real_name}) - *{m[1]}*\n"
                     absent_record_embed.add_field(name="請假人員", value=absent_members_str, inline=False)
                 await absent_record_channel.send(embed=absent_record_embed)
                 embed = discord.Embed(title="請假成功", description="你已經成功請假。", color=default_color)
