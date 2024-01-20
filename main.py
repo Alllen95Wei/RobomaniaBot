@@ -698,8 +698,8 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
         meeting_obj = json_assistant.Meeting(會議id)
         if meeting_obj.get_started():
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
-        elif meeting_obj.get_start_time() - time.time() < 3600:
-            embed = discord.Embed(title="錯誤", description="請假需在會議一小時前處理完畢。\n"
+        elif meeting_obj.get_start_time() - time.time() < 600:
+            embed = discord.Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
                                                           f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
