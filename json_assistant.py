@@ -190,7 +190,7 @@ class Meeting:
                 "description": "",
                 "host": "",
                 "link": "",
-                "start_time": "",
+                "start_time": 0,
                 "started": False,
                 "notified": False,
                 "meeting_record_link": "",
