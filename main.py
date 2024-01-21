@@ -213,7 +213,7 @@ class GetEventInfo(discord.ui.Modal):
         embed.title = "新會議"
         embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
         embed.set_footer(
-            text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前1小時處理完畢。")
+            text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前10分鐘處理完畢。")
         await m.send(embed=embed, view=AbsentInView(unique_id))
         real_logger.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
 
