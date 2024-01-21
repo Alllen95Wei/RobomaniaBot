@@ -19,6 +19,7 @@ import git
 import json_assistant
 import detect_pc_status
 import update as upd
+import logger
 # import arduino_reader
 
 # 機器人
@@ -29,64 +30,10 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 now_tz = zoneinfo.ZoneInfo("Asia/Taipei")
 default_color = 0x012a5e
 error_color = 0xF1411C
+real_logger = logger.CreateLogger()
 # 載入TOKEN
 load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
 TOKEN = str(os.getenv("TOKEN"))
-
-
-class CreateLogger:
-    def __init__(self):
-        super().__init__()
-        self.c_logger = self.color_logger()
-
-    @staticmethod
-    def color_logger():
-        display_formatter = ColoredFormatter(
-            fmt="%(white)s[%(asctime)s] %(log_color)s%(levelname)-10s%(reset)s %(blue)s%(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-            reset=True,
-            log_colors={
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "ANONYMOUS": "purple",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "red",
-            },
-        )
-
-        file_formatter = logging.Formatter(
-            fmt="[%(asctime)s] %(levelname)-8s %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S")
-
-        logger = logging.getLogger()
-        handler = logging.StreamHandler()
-        handler.setFormatter(display_formatter)
-        logger.addHandler(handler)
-        handler = logging.FileHandler("logs.log", encoding="utf-8")
-        handler.setFormatter(file_formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
-
-        return logger
-
-    def debug(self, message: str):
-        self.c_logger.debug(message)
-
-    def info(self, message: str):
-        self.c_logger.info(message)
-
-    def warning(self, message: str):
-        self.c_logger.warning(message)
-
-    def error(self, message: str):
-        self.c_logger.error(message)
-
-    def critical(self, message: str):
-        self.c_logger.critical(message)
-
-
-real_logger = CreateLogger()
 
 
 @tasks.loop(seconds=5)
