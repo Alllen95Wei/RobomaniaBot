@@ -1,9 +1,6 @@
 import time
 import datetime
 import zoneinfo
-import logging
-from colorlog import ColoredFormatter
-from PIL import ImageGrab
 import discord
 from discord.ext import commands
 from discord.ext import tasks
@@ -894,23 +891,6 @@ async def dps(ctx):
     embed.add_field(name="CPU使用率", value=f"{detect_pc_status.get_cpu_usage()}%")
     embed.add_field(name="記憶體使用率", value=f"{detect_pc_status.get_ram_usage_detail()}")
     await ctx.respond(embed=embed)
-
-
-@bot.slash_command(name="screenshot", description="在機器人伺服器端截圖。")
-@commands.is_owner()
-async def screenshot(ctx,
-                     私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa
-    try:
-        await ctx.defer()
-        # 截圖
-        img = ImageGrab.grab()
-        img.save("screenshot.png")
-        file = discord.File("screenshot.png")
-        embed = discord.Embed(title="截圖", color=default_color)
-        await ctx.respond(embed=embed, file=file, ephemeral=私人訊息)
-    except Exception as e:
-        embed = discord.Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
-        await ctx.respond(embed=embed, ephemeral=私人訊息)
 
 
 @bot.slash_command(name="update", description="更新機器人。")
