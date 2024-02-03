@@ -56,7 +56,8 @@ async def check_meeting():
                     if meeting_obj.get_absent_members():
                         absent_members = ""
                         for mem in meeting_obj.get_absent_members():
-                            absent_members += f"<@{mem[0]}> - *{mem[1]}*\n"
+                            member_obj = json_assistant.User(mem[0])
+                            absent_members += f"<@{mem[0]}>({member_obj.get_real_name()}) - *{mem[1]}*\n"
                         embed.add_field(name="請假人員", value=absent_members, inline=False)
                     await m.send(content="@everyone", embed=embed)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
