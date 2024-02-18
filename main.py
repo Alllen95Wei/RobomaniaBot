@@ -946,4 +946,11 @@ async def cmd(ctx,
             os.remove(txt_file_path)
 
 
+@bot.event
+async def on_message(message):
+    if message.author.id == bot.user.id:
+        return
+    if "The startCompetition() method" in message.content:
+        await message.reply("<:deadge:1200367980748476437>"*3)
+
 bot.run(TOKEN)
