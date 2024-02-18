@@ -241,7 +241,7 @@ async def on_application_command(ctx):
     real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
 
 
-member = bot.create_group(name="member", description="隊員資訊相關指令。")
+member_cmd = bot.create_group(name="member", description="隊員資訊相關指令。")
 
 
 @bot.slash_command(name="ping", description="查看機器人延遲。")
@@ -274,7 +274,7 @@ async def on_application_command_error(ctx, error):
         raise error
 
 
-@member.command(name="查詢", description="查看隊員資訊。")
+@member_cmd.command(name="查詢", description="查看隊員資訊。")
 async def member_info(ctx,
                       隊員: Option(discord.Member, "隊員", required=False) = None):  # noqa
     if 隊員 is None:
@@ -535,7 +535,7 @@ async def member_change_name_user(ctx, user: discord.Member):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-@member.command(name="個人記點紀錄", description="查詢記點紀錄。")
+@member_cmd.command(name="個人記點紀錄", description="查詢記點紀錄。")
 async def member_get_warning_history(ctx,
                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
     member_data = json_assistant.User(隊員.id)
@@ -561,7 +561,7 @@ async def member_get_warning_history_user(ctx, user: discord.Member):
     await member_get_warning_history(ctx, user)
 
 
-@member.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
+@member_cmd.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
 async def member_get_all_warning_history(ctx):
     embed = discord.Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
     for i in json_assistant.User.get_all_warning_history():
@@ -952,5 +952,16 @@ async def on_message(message):
         return
     if "The startCompetition() method" in message.content:
         await message.reply("<:deadge:1200367980748476437>"*3)
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if not before.channel and after.channel and after.channel.id == 1114209308910026792:
+        member_real_name = json_assistant.User(member.id).get_real_name()
+        await bot.get_channel(1114209308910026792).send(f"**{member_real_name}** 在 <t:{int(time.time())}:T> 加入大會。")
+    elif not after.channel and before.channel and before.channel.id == 1114209308910026792:
+        member_real_name = json_assistant.User(member.id).get_real_name()
+        await bot.get_channel(1114209308910026792).send(f"**{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。")
+
 
 bot.run(TOKEN)
