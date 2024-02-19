@@ -958,10 +958,12 @@ async def on_message(message):
 async def on_voice_state_update(member, before, after):
     if not before.channel and after.channel and after.channel.id == 1114209308910026792:
         member_real_name = json_assistant.User(member.id).get_real_name()
-        await bot.get_channel(1114209308910026792).send(f"<:join:1208779348438683668> **{member_real_name}** 在 <t:{int(time.time())}:T> 加入大會。")
+        await bot.get_channel(1114209308910026792).send(
+            f"<:join:1208779348438683668> **{member_real_name}** 在 <t:{int(time.time())}:T> 加入大會。", delete_after=43200)
     elif not after.channel and before.channel and before.channel.id == 1114209308910026792:
         member_real_name = json_assistant.User(member.id).get_real_name()
-        await bot.get_channel(1114209308910026792).send(f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。")
+        await bot.get_channel(1114209308910026792).send(
+            f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。", delete_after=43200)
 
 
 bot.run(TOKEN)
