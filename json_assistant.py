@@ -5,7 +5,7 @@ import datetime
 from string import hexdigits
 from random import choice
 
-file_dir = os.path.abspath(os.path.dirname(__file__))
+base_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class User:
@@ -15,7 +15,7 @@ class User:
     # @staticmethod
     # def __index_using_real_name():
     #     index_dict = {}
-    #     for user in os.listdir(os.path.join(file_dir, "member_data")):
+    #     for user in os.listdir(os.path.join(base_dir, "member_data")):
     #         user_id = user.split(".")[0]
     #         user = User(int(user_id))
     #         index_dict[user.get_real_name()] = user_id
@@ -27,7 +27,7 @@ class User:
 
     @staticmethod
     def __get_all_user_id():
-        file = os.path.join(file_dir, "member_data")
+        file = os.path.join(base_dir, "member_data")
         return [i.split(".")[0] for i in os.listdir(file)]
 
     @staticmethod
@@ -35,7 +35,7 @@ class User:
         user_list = User.__get_all_user_id()
         for user in user_list:
             try:
-                file = os.path.join(file_dir, "member_data", user + ".json")
+                file = os.path.join(base_dir, "member_data", user + ".json")
                 with open(file, "r", encoding="big5") as f:
                     raw_data = f.read()
                 with open(file, "w", encoding="utf-8") as f:
@@ -44,7 +44,7 @@ class User:
                 print(f"Error occurred when converting {user}.json from big5 to utf-8.")
 
     def get_raw_info(self):
-        file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
+        file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 user_info = json.loads(f.read())
@@ -60,7 +60,7 @@ class User:
             return empty_data
 
     def write_raw_info(self, data):
-        file = os.path.join(file_dir, "member_data", str(self.user_id) + ".json")
+        file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
         with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -134,7 +134,7 @@ class User:
 
     @staticmethod
     def get_all_warning_history():
-        file = os.path.join(file_dir, "member_data", "warning_points_history.json")
+        file = os.path.join(base_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 return json.loads(f.read())
@@ -143,7 +143,7 @@ class User:
 
     @staticmethod
     def add_warning_history(user_id, points: [float, int], reason: str, note: str = None):
-        file = os.path.join(file_dir, "member_data", "warning_points_history.json")
+        file = os.path.join(base_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 history = json.loads(f.read())
@@ -163,7 +163,7 @@ class Meeting:
         while True:
             random_char_list = [choice(hexdigits) for i in range(5)]
             random_char = "".join(random_char_list)
-            file = os.path.join(file_dir, "meeting_data", random_char + ".json")
+            file = os.path.join(base_dir, "meeting_data", random_char + ".json")
             if not os.path.exists(file):
                 break
         empty_data = Meeting(random_char).get_raw_info()
@@ -172,14 +172,14 @@ class Meeting:
 
     @staticmethod
     def get_all_meeting_id():
-        file = os.path.join(file_dir, "meeting_data")
+        file = os.path.join(base_dir, "meeting_data")
         return [i.split(".")[0] for i in os.listdir(file)]
 
     def __str__(self):
         return self.get_name()
 
     def get_raw_info(self):
-        file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
+        file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 meeting_info = json.loads(f.read())
@@ -199,18 +199,18 @@ class Meeting:
             return empty_data
 
     def write_raw_info(self, data):
-        file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
+        file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def delete(self):
-        file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
+        file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         os.remove(file)
 
     def archive(self):
-        file = os.path.join(file_dir, "meeting_data", str(self.event_id) + ".json")
+        file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
-            shutil.move(file, os.path.join(file_dir, "archived", "meeting", str(self.event_id) + ".json"))
+            shutil.move(file, os.path.join(base_dir, "archived", "meeting", str(self.event_id) + ".json"))
         else:
             raise FileNotFoundError("File not found.")
 
@@ -310,7 +310,7 @@ class Message:
         while True:
             random_char_list = [choice(hexdigits) for i in range(5)]
             random_char = "".join(random_char_list)
-            file = os.path.join(file_dir, "message_data", random_char + ".json")
+            file = os.path.join(base_dir, "message_data", random_char + ".json")
             if not os.path.exists(file):
                 break
         empty_data = Message(random_char).get_raw_info()
@@ -319,11 +319,11 @@ class Message:
 
     @staticmethod
     def get_all_message_id():
-        file = os.path.join(file_dir, "message_data")
+        file = os.path.join(base_dir, "message_data")
         return [i.split(".")[0] for i in os.listdir(file)]
 
     def get_raw_info(self):
-        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        file = os.path.join(base_dir, "message_data", str(self.message_id) + ".json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 message_info = json.loads(f.read())
@@ -339,12 +339,12 @@ class Message:
             return empty_data
 
     def write_raw_info(self, data):
-        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        file = os.path.join(base_dir, "message_data", str(self.message_id) + ".json")
         with open(file, "w", encoding="utf-8") as fm:
             json.dump(data, fm, indent=2, ensure_ascii=False)
 
     def delete(self):
-        file = os.path.join(file_dir, "message_data", str(self.message_id) + ".json")
+        file = os.path.join(base_dir, "message_data", str(self.message_id) + ".json")
         os.remove(file)
 
     def get_author(self):
@@ -391,3 +391,126 @@ class Message:
         message_info = self.get_raw_info()
         message_info["response"] = response
         self.write_raw_info(message_info)
+
+
+class Order:
+    def __init__(self, order_id: str):
+        self.order_id = order_id
+        self.file_path = os.path.join(base_dir, "order_data", order_id + ".json")
+
+    @staticmethod
+    def generate_order_id():
+        while True:
+            random_char_list = [choice(hexdigits) for i in range(5)]
+            random_char = "".join(random_char_list)
+            file = os.path.join(base_dir, "order_data", random_char + ".json")
+            if not os.path.exists(file):
+                break
+        empty_data = Order(random_char).get_raw_info()
+        Order(random_char).write_raw_info(empty_data)
+        return random_char
+
+    @staticmethod
+    def get_all_order_id():
+        file = os.path.join(base_dir, "order_data")
+        return [i.split(".")[0] for i in os.listdir(file)]
+
+    def get_raw_info(self):
+        if os.path.exists(self.file_path):
+            with open(self.file_path, "r") as f:
+                user_info = json.loads(f.read())
+                return user_info
+        else:
+            empty_data = {"title": "",
+                          "description": "",
+                          "menu_link": "",
+                          "end_time": 0,
+                          "current_order": {},
+                          "manager": 0,
+                          "has_closed": False}
+            return empty_data
+
+    def write_raw_info(self, data: dict):
+        with open(self.file_path, "w") as f:
+            json.dump(data, f, indent=2)
+
+    def delete(self):
+        if os.path.exists(self.file_path):
+            os.remove(self.file_path)
+        else:
+            raise FileNotFoundError("Order not found.")
+
+    def get_title(self):
+        return self.get_raw_info()["title"]
+
+    def set_title(self, title: str):
+        data = self.get_raw_info()
+        data["title"] = title
+        self.write_raw_info(data)
+
+    def get_description(self):
+        return self.get_raw_info()["description"]
+
+    def set_description(self, description: str):
+        data = self.get_raw_info()
+        data["description"] = description
+        self.write_raw_info(data)
+
+    def get_menu_link(self):
+        return self.get_raw_info()["menu_link"]
+
+    def set_menu_link(self, menu_link: str):
+        data = self.get_raw_info()
+        data["menu_link"] = menu_link
+        self.write_raw_info(data)
+
+    def get_end_time(self) -> int:
+        return self.get_raw_info()["end_time"]
+
+    def set_end_time(self, end_time: int):
+        data = self.get_raw_info()
+        data["end_time"] = end_time
+        self.write_raw_info(data)
+
+    def get_current_order(self) -> dict:
+        return self.get_raw_info()["current_order"]
+
+    def get_user_order(self, user_id: int):
+        all_order = self.get_current_order()
+        try:
+            return all_order[str(user_id)]
+        except KeyError:
+            return []
+
+    def add_order(self, user_id: int, order: list):
+        data = self.get_raw_info()
+        data["current_order"][str(user_id)] = order
+        self.write_raw_info(data)
+
+    def remove_order(self, user_id: int):
+        data = self.get_raw_info()
+        for i in data["current_order"]:
+            if i == user_id:
+                data["current_order"].pop(i)
+                break
+        self.write_raw_info(data)
+
+    def user_has_joined_order(self, user_id: int) -> bool:
+        order = self.get_current_order()
+        return str(user_id) in order.keys()
+
+    def get_manager(self):
+        return self.get_raw_info()["manager"]
+
+    def set_manager(self, manager: int):
+        data = self.get_raw_info()
+        data["manager"] = manager
+        self.write_raw_info(data)
+
+    def order_has_closed(self) -> bool:
+        return self.get_raw_info()["has_closed"]
+
+    def set_order_has_closed(self, status: bool):
+        data = self.get_raw_info()
+        data["has_closed"] = status
+        self.write_raw_info(data)
