@@ -28,7 +28,9 @@ class User:
     @staticmethod
     def get_all_user_id():
         file = os.path.join(base_dir, "member_data")
-        return [i.split(".")[0] for i in os.listdir(file)].remove("warning_points_history")
+        raw_list = [i.split(".")[0] for i in os.listdir(file)]
+        raw_list.remove("warning_points_history")
+        return raw_list
 
     @staticmethod
     def convert_big5_to_utf8():
