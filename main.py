@@ -17,6 +17,7 @@ import json_assistant
 import detect_pc_status
 import update as upd
 import logger
+
 # import arduino_reader
 
 # 機器人
@@ -46,12 +47,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                     f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                                         f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                           color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -295,6 +296,20 @@ async def member_info(ctx,
     await ctx.respond(embed=embed)
 
 
+@member_cmd.command(name="查詢記點人員", description="列出所有點數不為0的隊員。")
+async def member_list_bad_guys(ctx):
+    members = json_assistant.User.get_all_user_id()
+    embed = discord.Embed(title="遭記點隊員清單", description="以下為點數不為0的所有隊員：", color=default_color)
+    for m in members:
+        member_obj = json_assistant.User(m)
+        if member_obj.get_warning_points() != 0:
+            embed.add_field(name=member_obj.get_real_name(), value=f"點數：`{member_obj.get_warning_points()}`點",
+                            inline=False)
+    if len(embed.fields) == 0:
+        embed.add_field(name="(沒有遭記點隊員)", value="所有人目前皆無點數！", inline=False)
+    await ctx.respond(embed=embed)
+
+
 @bot.user_command(name="查看此隊員的資訊")
 async def member_info_user(ctx, user: discord.Member):
     await member_info(ctx, user)
@@ -432,9 +447,9 @@ async def member_add_warning_points(ctx,
                             description="當一般記點指令中沒有合適的規定來記/銷點，則可使用此指令。請合理使用！")
 @commands.has_role(1114205838144454807)
 async def member_add_warning_points_with_exceptions(ctx,
-                                    隊員: Option(discord.Member, "隊員", required=True),  # noqa
-                                    點數: Option(float, "點數", required=True),  # noqa
-                                    事由: Option(str, "事由", required=True)):  # noqa
+                                                    隊員: Option(discord.Member, "隊員", required=True),  # noqa
+                                                    點數: Option(float, "點數", required=True),  # noqa
+                                                    事由: Option(str, "事由", required=True)):  # noqa
     member_data = json_assistant.User(隊員.id)
     member_data.add_warning_points(點數, "使用「意外記/銷點」指令", 事由)
     current_points = member_data.get_warning_points()
@@ -645,7 +660,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
             embed = discord.Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                          f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                            f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
             absent_members_id = [i[0] for i in meeting_obj.get_absent_members()]
@@ -686,7 +701,8 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
 @meeting.command(name="設定會議記錄", description="設定會議記錄連結。")
 @commands.has_role(1114205838144454807)
 async def set_meeting_record_link(ctx,
-                                  會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),  # noqa
+                                  會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),
+                                  # noqa
                                   連結: Option(str, "會議記錄連結", required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
@@ -770,18 +786,20 @@ async def send_message_to_leader(ctx,
     embed = discord.Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+                                                            "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
     embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+                                                        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                                        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
     await ctx.respond(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="隊長信箱回覆", description="(隊長限定)回覆隊長信箱的訊息。")
 async def reply_to_leader_mail(ctx,
-                               回覆訊息id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),  # noqa
+                               回覆訊息id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
+                               # noqa
                                回覆訊息: Option(str, "回覆的訊息內容", required=True),  # noqa
-                               回覆類型: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"], required=True)):  # noqa
+                               回覆類型: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"],
+                                                required=True)):  # noqa
     try:
         await ctx.defer()
     except AttributeError:
@@ -871,9 +889,9 @@ async def about(ctx,
     embed = discord.Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(name="程式碼與授權", value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-                                         "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-                                         "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/"
-                                         "RobomaniaBot)查看。",
+                                               "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+                                               "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/"
+                                               "RobomaniaBot)查看。",
                     inline=True)
     embed.add_field(name="聯絡", value="如果有任何技術問題及建議，請聯絡<@657519721138094080>。", inline=True)
     repo = git.Repo(search_parent_directories=True)
@@ -910,7 +928,7 @@ async def update(ctx,
 async def cmd(ctx,
               指令: Option(str, "要執行的指令", required=True),  # noqa: PEP 3131
               執行模組: Option(str, choices=["subprocess", "os"], description="執行指令的模組",  # noqa: PEP 3131
-                           required=False) = "subprocess",
+                               required=False) = "subprocess",
               私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False):  # noqa: PEP 3131
     try:
         await ctx.defer(ephemeral=私人訊息)
@@ -951,7 +969,7 @@ async def on_message(message):
     if message.author.id == bot.user.id:
         return
     if "The startCompetition() method" in message.content or "Warning at" in message.content:
-        await message.reply("<:deadge:1200367980748476437>"*3)
+        await message.reply("<:deadge:1200367980748476437>" * 3)
 
 
 @bot.event
@@ -959,11 +977,13 @@ async def on_voice_state_update(member, before, after):
     if not before.channel and after.channel and after.channel.id == 1114209308910026792:
         member_real_name = json_assistant.User(member.id).get_real_name()
         await bot.get_channel(1114209308910026792).send(
-            f"<:join:1208779348438683668> **{member_real_name}** 在 <t:{int(time.time())}:T> 加入大會。", delete_after=43200)
+            f"<:join:1208779348438683668> **{member_real_name}** 在 <t:{int(time.time())}:T> 加入大會。",
+            delete_after=43200)
     elif not after.channel and before.channel and before.channel.id == 1114209308910026792:
         member_real_name = json_assistant.User(member.id).get_real_name()
         await bot.get_channel(1114209308910026792).send(
-            f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。", delete_after=43200)
+            f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。",
+            delete_after=43200)
 
 
 bot.run(TOKEN)

@@ -26,13 +26,13 @@ class User:
     #     return User.__index_using_real_name()
 
     @staticmethod
-    def __get_all_user_id():
+    def get_all_user_id():
         file = os.path.join(base_dir, "member_data")
         return [i.split(".")[0] for i in os.listdir(file)]
 
     @staticmethod
     def convert_big5_to_utf8():
-        user_list = User.__get_all_user_id()
+        user_list = User.get_all_user_id()
         for user in user_list:
             try:
                 file = os.path.join(base_dir, "member_data", user + ".json")
