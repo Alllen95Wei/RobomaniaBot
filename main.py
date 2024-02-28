@@ -263,15 +263,15 @@ async def on_application_command_error(ctx, error):
         embed = discord.Embed(title="錯誤", description="你沒有權限使用此指令。", color=error_color)
         await ctx.respond(embed=embed, ephemeral=True)
     else:
-        # embed = discord.Embed(title="錯誤", description="發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
-        # embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
-        # embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
-        # embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
-        # embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
-        # allen = bot.get_user(657519721138094080)
-        # await allen.send(embed=embed)
-        # embed = discord.Embed(title="錯誤", description="發生了一個錯誤，已經通知開發者。", color=error_color)
-        # await ctx.respond(embed=embed, ephemeral=True)
+        embed = discord.Embed(title="錯誤", description="發生了一個錯誤，錯誤詳細資料如下。", color=error_color)
+        embed.add_field(name="指令名稱", value=f"`{ctx.command.name}`", inline=False)
+        embed.add_field(name="使用者", value=f"`{ctx.author}`", inline=False)
+        embed.add_field(name="錯誤類型", value=f"`{type(error).__name__}`", inline=False)
+        embed.add_field(name="錯誤訊息", value=f"`{error}`", inline=False)
+        allen = bot.get_user(657519721138094080)
+        await allen.send(embed=embed)
+        embed = discord.Embed(title="錯誤", description="發生了一個錯誤，已經通知開發者。", color=error_color)
+        await ctx.respond(embed=embed, ephemeral=True)
         raise error
 
 
@@ -302,7 +302,6 @@ async def member_list_bad_guys(ctx):
     embed = discord.Embed(title="遭記點隊員清單", description="以下為點數不為0的所有隊員：", color=default_color)
     for m in members:
         member_obj = json_assistant.User(m)
-        real_logger.debug(m)
         if member_obj.get_warning_points() != 0:
             embed.add_field(name=member_obj.get_real_name(), value=f"點數：`{member_obj.get_warning_points()}`點",
                             inline=False)
