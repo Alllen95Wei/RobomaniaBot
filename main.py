@@ -302,6 +302,7 @@ async def member_list_bad_guys(ctx):
     embed = discord.Embed(title="遭記點隊員清單", description="以下為點數不為0的所有隊員：", color=default_color)
     for m in members:
         member_obj = json_assistant.User(m)
+        real_logger.debug(m)
         if member_obj.get_warning_points() != 0:
             embed.add_field(name=member_obj.get_real_name(), value=f"點數：`{member_obj.get_warning_points()}`點",
                             inline=False)
