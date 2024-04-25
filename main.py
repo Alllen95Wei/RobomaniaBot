@@ -804,7 +804,7 @@ async def reply_to_leader_mail(ctx,
         await ctx.defer()
     except AttributeError:
         await ctx.response.defer()
-    leader = bot.get_user(940410723127934986)
+    leader = bot.get_user(842974332862726214)
     try:
         author = ctx.author
     except AttributeError:
