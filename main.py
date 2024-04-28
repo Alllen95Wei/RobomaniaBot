@@ -761,6 +761,7 @@ async def get_meeting_info(ctx,
     await ctx.respond(embed=embed)
 
 
+@commands.cooldown(1, 300)
 @bot.slash_command(name="隊長信箱", description="匿名寄送訊息給隊長。")
 async def send_message_to_leader(ctx,
                                  訊息: Option(str, "訊息內容", required=True)):  # noqa
