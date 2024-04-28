@@ -701,12 +701,11 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
 @meeting.command(name="設定會議記錄", description="設定會議記錄連結。")
 @commands.has_role(1114205838144454807)
 async def set_meeting_record_link(ctx,
-                                  會議id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),
-                                  # noqa
+                                  meeting_id: Option(str, "欲設定的會議ID", min_length=5, max_length=5, required=True),
                                   連結: Option(str, "會議記錄連結", required=True)):  # noqa
     id_list = json_assistant.Meeting.get_all_meeting_id()
-    if 會議id in id_list:
-        meeting_obj = json_assistant.Meeting(會議id)
+    if meeting_id in id_list:
+        meeting_obj = json_assistant.Meeting(meeting_id)
         regex = re.compile(
             r'^(?:http|ftp)s?://'  # http:// or https://
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
@@ -718,7 +717,7 @@ async def set_meeting_record_link(ctx,
         else:
             meeting_obj.set_meeting_record_link(連結)
             embed = discord.Embed(title="設定會議記錄連結",
-                                  description=f"已將會議 `{會議id}` 的會議記錄連結設定為 `{連結}`。",
+                                  description=f"已將會議 `{meeting_id}` 的會議記錄連結設定為 `{連結}`。",
                                   color=default_color)
             if meeting_obj.get_absent_members():
                 notify_channel = bot.get_channel(1128232150135738529)
@@ -726,14 +725,14 @@ async def set_meeting_record_link(ctx,
                 for m in meeting_obj.get_absent_members():
                     absent_members_str += f"<@{m[0]}> "
                 notify_embed = discord.Embed(title="會議記錄連結",
-                                             description=f"會議 `{會議id}` 的會議記錄連結已經設定。\n"
+                                             description=f"會議 `{meeting_id}` 的會議記錄連結已經設定。\n"
                                                          f"缺席的成員，請務必閱讀會議紀錄！",
                                              color=default_color)
                 notify_embed.add_field(name="會議名稱", value=meeting_obj.get_name(), inline=False)
                 notify_embed.add_field(name="會議記錄連結", value=連結, inline=False)
                 await notify_channel.send(content=absent_members_str, embed=notify_embed)
     else:
-        embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
+        embed = discord.Embed(title="錯誤", description=f"會議 `{meeting_id}` 不存在！", color=error_color)
     await ctx.respond(embed=embed)
 
 
@@ -786,20 +785,19 @@ async def send_message_to_leader(ctx,
     embed = discord.Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-                                                            "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
     embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-                                                        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-                                                        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
     await ctx.respond(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="隊長信箱回覆", description="(隊長限定)回覆隊長信箱的訊息。")
 async def reply_to_leader_mail(ctx,
-                               回覆訊息id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
-                               # noqa
-                               回覆訊息: Option(str, "回覆的訊息內容", required=True),  # noqa
-                               回覆類型: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"],
-                                                required=True)):  # noqa
+                               msg_id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
+                               msg: Option(str, "回覆的訊息內容", required=True),  # noqa
+                               response_type: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"],
+                                                required=True)):
     try:
         await ctx.defer()
     except AttributeError:
@@ -810,8 +808,8 @@ async def reply_to_leader_mail(ctx,
     except AttributeError:
         author = ctx.user
     if author == leader:
-        if 回覆訊息id in json_assistant.Message.get_all_message_id():
-            mail = json_assistant.Message(回覆訊息id)
+        if msg_id in json_assistant.Message.get_all_message_id():
+            mail = json_assistant.Message(msg_id)
             if mail.get_replied():
                 embed = discord.Embed(title="錯誤", description="這則訊息已被回覆。", color=error_color)
                 embed.add_field(name="你的回覆", value=mail.get_response())
@@ -819,23 +817,23 @@ async def reply_to_leader_mail(ctx,
                 response_embed = discord.Embed(title="隊長信箱回覆", description="隊長回覆了信箱中的訊息！",
                                                color=default_color)
                 response_embed.add_field(name="你的訊息內容", value=mail.get_content(), inline=False)
-                response_embed.add_field(name="隊長的回覆內容", value=回覆訊息, inline=False)
-                if 回覆類型 == "公開":
+                response_embed.add_field(name="隊長的回覆內容", value=msg, inline=False)
+                if response_type == "公開":
                     response_channel = bot.get_channel(1152158914847199312)
                     await response_channel.send(embed=response_embed)
                     embed = discord.Embed(title="回覆成功！",
                                           description=f"已將你的回覆傳送到{response_channel.mention}。",
                                           color=default_color)
                     embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
-                    embed.add_field(name="你的回覆內容", value=回覆訊息, inline=False)
-                elif 回覆類型 == "私人":
+                    embed.add_field(name="你的回覆內容", value=msg, inline=False)
+                elif response_type == "私人":
                     sender = bot.get_user(mail.get_author())
                     try:
                         await sender.send(embed=response_embed)
                         embed = discord.Embed(title="回覆成功！", description=f"已將你的回覆傳送給{sender.mention}。",
                                               color=default_color)
                         embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
-                        embed.add_field(name="你的回覆內容", value=回覆訊息, inline=False)
+                        embed.add_field(name="你的回覆內容", value=msg, inline=False)
                     except discord.errors.HTTPException as error:
                         if error.code == 50007:
                             embed = discord.Embed(title="錯誤",
@@ -844,11 +842,11 @@ async def reply_to_leader_mail(ctx,
                         else:
                             raise error
                 else:
-                    embed = discord.Embed(title="錯誤", description=f"所指定的回覆類型 (`{回覆類型}`) 不存在！")
+                    embed = discord.Embed(title="錯誤", description=f"所指定的回覆類型 (`{response_type}`) 不存在！")
                 mail.set_replied(True)
-                mail.set_response(回覆訊息)
+                mail.set_response(msg)
         else:
-            embed = discord.Embed(title="錯誤", description=f"訊息 `{回覆訊息id}` 不存在！", color=error_color)
+            embed = discord.Embed(title="錯誤", description=f"訊息 `{msg_id}` 不存在！", color=error_color)
     else:
         embed = discord.Embed(title="錯誤", description="你不是隊長，無法使用此指令！", color=error_color)
     try:
