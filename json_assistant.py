@@ -516,3 +516,106 @@ class Order:
         data = self.get_raw_info()
         data["has_closed"] = status
         self.write_raw_info(data)
+
+
+class Reminder:
+    def __init__(self, reminder_id: str):
+        self.reminder_id = reminder_id
+
+    @staticmethod
+    def create_new_reminder():
+        while True:
+            random_char_list = [choice(hexdigits) for _ in range(5)]
+            random_char = "".join(random_char_list)
+            file = os.path.join(base_dir, "reminder_data", random_char + ".json")
+            if not os.path.exists(file):
+                break
+        empty_data = Reminder(random_char).get_raw_info()
+        Reminder(random_char).write_raw_info(empty_data)
+        return random_char
+
+    @staticmethod
+    def get_all_reminder_id():
+        file = os.path.join(base_dir, "reminder_data")
+        return [i.split(".")[0] for i in os.listdir(file)]
+
+    def get_raw_info(self):
+        file = os.path.join(base_dir, "reminder_data", str(self.reminder_id) + ".json")
+        if os.path.exists(file):
+            with open(file, "r", encoding="utf-8") as f:
+                reminder_info = json.loads(f.read())
+                return reminder_info
+        else:
+            empty_data = {
+                "title": "",
+                "description": "",
+                "progress": 0,
+                "sub_tasks": [],
+                "author": 0,
+                "time": 0
+            }
+            return empty_data
+
+    def write_raw_info(self, data):
+        file = os.path.join(base_dir, "reminder", str(self.reminder_id) + ".json")
+        with open(file, "w", encoding="utf-8") as fm:
+            json.dump(data, fm, indent=2, ensure_ascii=False)
+
+    def get_title(self) -> str:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("title", "")
+
+    def set_title(self, title: str):
+        reminder_info = self.get_raw_info()
+        reminder_info["title"] = title
+        self.write_raw_info(reminder_info)
+
+    def get_description(self) -> str:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("description", "")
+
+    def set_description(self, description: str):
+        reminder_info = self.get_raw_info()
+        reminder_info["description"] = description
+        self.write_raw_info(reminder_info)
+
+    def get_progress(self) -> int:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("progress", 0)
+
+    def set_progress(self, progress: int):
+        if progress < 0 or progress > 100:
+            raise ValueError
+        reminder_info = self.get_raw_info()
+        reminder_info["progress"] = progress
+        self.write_raw_info(reminder_info)
+
+    def get_subtasks(self) -> list[dict]:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("progress", [])
+
+    def add_subtasks(self, task_name: str, task_progress: float):
+        if task_progress < 0 or task_progress > 100:
+            raise ValueError
+        new_task = {"name": task_name, "progress": task_progress}
+        reminder_info = self.get_raw_info()
+        reminder_info["sub_tasks"].append(new_task)
+        self.write_raw_info(reminder_info)
+
+    def get_author(self) -> int:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("author", 0)
+
+    def set_author(self, author: int):
+        reminder_info = self.get_raw_info()
+        reminder_info["author"] = author
+        self.write_raw_info(reminder_info)
+
+    def get_time(self) -> int | float:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("time", 0)
+
+    def set_time(self, time: int | float):
+        reminder_info = self.get_raw_info()
+        reminder_info["time"] = time
+        self.write_raw_info(reminder_info)
