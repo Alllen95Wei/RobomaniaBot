@@ -1,3 +1,4 @@
+# coding=utf-8
 import json
 import os
 import shutil
@@ -116,7 +117,7 @@ class User:
         self.write_raw_info(user_info)
         self.add_warning_history(self.user_id, points, reason, note)
 
-    def get_raw_warning_history(self):
+    def get_raw_warning_history(self) -> list:
         user_info = self.get_raw_info()
         raw_history = user_info["warning_history"]
         del raw_history[0]
@@ -126,6 +127,7 @@ class User:
         raw_history = self.get_raw_warning_history()
         formatted_history = ""
         for i in raw_history:
+            i: list[str | int]
             add_or_subtract = "記點" if i[2] > 0 else "銷點"
             if i[3] is None:
                 formatted_history += f"{i[0]}: {add_or_subtract} {abs(i[2])} 點 ({i[1]})\n"
@@ -403,7 +405,7 @@ class Order:
     @staticmethod
     def generate_order_id():
         while True:
-            random_char_list = [choice(hexdigits) for i in range(5)]
+            random_char_list = [choice(hexdigits) for _ in range(5)]
             random_char = "".join(random_char_list)
             file = os.path.join(base_dir, "order_data", random_char + ".json")
             if not os.path.exists(file):
