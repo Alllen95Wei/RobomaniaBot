@@ -163,7 +163,7 @@ class Meeting:
     @staticmethod
     def create_new_meeting():
         while True:
-            random_char_list = [choice(hexdigits) for i in range(5)]
+            random_char_list = [choice(hexdigits) for _ in range(5)]
             random_char = "".join(random_char_list)
             file = os.path.join(base_dir, "meeting_data", random_char + ".json")
             if not os.path.exists(file):
@@ -310,7 +310,7 @@ class Message:
     @staticmethod
     def create_new_message():
         while True:
-            random_char_list = [choice(hexdigits) for i in range(5)]
+            random_char_list = [choice(hexdigits) for _ in range(5)]
             random_char = "".join(random_char_list)
             file = os.path.join(base_dir, "message_data", random_char + ".json")
             if not os.path.exists(file):
