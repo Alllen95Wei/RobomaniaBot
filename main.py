@@ -1,3 +1,4 @@
+# coding=utf-8
 import time
 import datetime
 import zoneinfo
@@ -47,12 +48,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = discord.Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                         f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                                     f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                           color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -660,7 +661,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = discord.Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
             embed = discord.Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                            f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                          f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
             absent_members_id = [i[0] for i in meeting_obj.get_absent_members()]
@@ -888,9 +889,9 @@ async def about(ctx,
     embed = discord.Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(name="程式碼與授權", value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-                                               "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-                                               "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/"
-                                               "RobomaniaBot)查看。",
+                                         "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+                                         "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/"
+                                         "RobomaniaBot)查看。",
                     inline=True)
     embed.add_field(name="聯絡", value="如果有任何技術問題及建議，請聯絡<@657519721138094080>。", inline=True)
     repo = git.Repo(search_parent_directories=True)
