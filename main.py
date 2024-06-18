@@ -34,6 +34,8 @@ real_logger = logger.CreateLogger()
 load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
 TOKEN = str(os.getenv("TOKEN"))
 
+bot.logger = real_logger
+
 
 @tasks.loop(seconds=5)
 async def check_meeting():
@@ -800,15 +802,15 @@ async def reply_to_leader_mail(ctx,
                                msg: Option(str, "回覆的訊息內容", required=True),  # noqa
                                response_type: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"],
                                                 required=True)):
-    try:
-        await ctx.defer()
-    except AttributeError:
+    if isinstance(ctx, discord.Interaction):
         await ctx.response.defer()
+    else:
+        await ctx.defer()
     leader = bot.get_user(842974332862726214)
-    try:
-        author = ctx.author
-    except AttributeError:
+    if isinstance(ctx, discord.Interaction):
         author = ctx.user
+    else:
+        author = ctx.author
     if author == leader:
         if msg_id in json_assistant.Message.get_all_message_id():
             mail = json_assistant.Message(msg_id)
@@ -851,10 +853,10 @@ async def reply_to_leader_mail(ctx,
             embed = discord.Embed(title="錯誤", description=f"訊息 `{msg_id}` 不存在！", color=error_color)
     else:
         embed = discord.Embed(title="錯誤", description="你不是隊長，無法使用此指令！", color=error_color)
-    try:
-        await ctx.respond(embed=embed, ephemeral=True)
-    except AttributeError:
+    if isinstance(ctx, discord.Interaction):
         await ctx.followup.send(embed=embed, ephemeral=True)
+    else:
+        await ctx.respond(embed=embed, ephemeral=True)
 
 
 # @bot.slash_command(name="查詢工作室環境", description="取得工作室目前濕度及溫度。")
@@ -986,5 +988,5 @@ async def on_voice_state_update(member, before, after):
             f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。",
             delete_after=43200)
 
-
+bot.load_extensions("cogs.reminder")
 bot.run(TOKEN)
