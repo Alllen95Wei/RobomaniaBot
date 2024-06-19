@@ -249,7 +249,10 @@ async def on_ready():
 
 @bot.event
 async def on_application_command(ctx):
-    real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
+    if ctx.command.parent is None:
+        real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.name}\"")
+    else:
+        real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.parent.name} {ctx.command.name}\"")
 
 
 member_cmd = bot.create_group(name="member", description="隊員資訊相關指令。")
