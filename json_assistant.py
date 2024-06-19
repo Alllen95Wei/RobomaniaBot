@@ -263,14 +263,29 @@ class Meeting:
         meeting_info["start_time"] = start_time
         self.write_raw_info(meeting_info)
 
-    def get_absent_members(self):
+    def disable_absent(self, disabled: bool):
+        meeting_info = self.get_raw_info()
+        if disabled:
+            meeting_info["absent_members"] = "disabled"
+        else:
+            meeting_info["absent_members"] = [["id", "reason"]]
+        self.write_raw_info(meeting_info)
+
+    def get_absent_members(self) -> list | None:
         meeting_info = self.get_raw_info()
         members = meeting_info["absent_members"]
-        del members[0]
-        return meeting_info["absent_members"]
+        if members == "disabled":
+            return
+        else:
+            members = meeting_info["absent_members"]
+            del members[0]
+            return meeting_info["absent_members"]
 
     def add_absent_member(self, member_id, reason):
         meeting_info = self.get_raw_info()
+        members = meeting_info["absent_members"]
+        if members == "disabled":
+            raise Exception('"absent_members" disabled.')
         meeting_info["absent_members"].append([member_id, reason])
         self.write_raw_info(meeting_info)
 
@@ -554,12 +569,13 @@ class Reminder:
                 "progress": 0,
                 "sub_tasks": [],
                 "author": 0,
-                "time": 0
+                "time": 0,
+                "notified": False
             }
             return empty_data
 
     def write_raw_info(self, data):
-        file = os.path.join(base_dir, "reminder", str(self.reminder_id) + ".json")
+        file = os.path.join(base_dir, "reminder_data", str(self.reminder_id) + ".json")
         with open(file, "w", encoding="utf-8") as fm:
             json.dump(data, fm, indent=2, ensure_ascii=False)
 
@@ -620,4 +636,13 @@ class Reminder:
     def set_time(self, time: int | float):
         reminder_info = self.get_raw_info()
         reminder_info["time"] = time
+        self.write_raw_info(reminder_info)
+
+    def get_notified(self) -> bool:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("notified", False)
+
+    def set_notified(self, is_notified: bool = True):
+        reminder_info = self.get_raw_info()
+        reminder_info["notified"] = is_notified
         self.write_raw_info(reminder_info)

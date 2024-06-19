@@ -90,7 +90,8 @@ class GetEventInfo(discord.ui.Modal):
         self.meeting_id = meeting_id
         if meeting_id is not None:
             meeting_obj = json_assistant.Meeting(meeting_id)
-            prefill_data = [meeting_obj.get_name(), meeting_obj.get_description(),
+            prefill_data = [meeting_obj.get_name(),
+                            "1" if meeting_obj.get_absent_members() is None else "",
                             datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), tz=now_tz).
                             strftime("%Y/%m/%d %H:%M"),
                             meeting_obj.get_link(),
@@ -100,8 +101,9 @@ class GetEventInfo(discord.ui.Modal):
 
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議標題", value=prefill_data[0],
                                            required=True))
-        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.long, label="簡介", max_length=200,
-                                           value=prefill_data[1], required=False))
+        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="強制參加(停用請假)？",
+                                           placeholder="輸入任何字元，即可停用此會議的請假功能",
+                                           max_length=1, value=prefill_data[1], required=False))
         self.add_item(
             discord.ui.InputText(style=discord.InputTextStyle.short, label="開始時間(格式：YYYY/MM/DD HH:MM，24小時制)",
                                  placeholder="如：2021/01/10 12:05", min_length=16, max_length=16,
@@ -126,14 +128,16 @@ class GetEventInfo(discord.ui.Modal):
                                   color=default_color)
         meeting_obj = json_assistant.Meeting(unique_id)
         meeting_obj.set_name(self.children[0].value)
-        meeting_obj.set_description(self.children[1].value)
+        meeting_obj.disable_absent(True if self.children[1].value != "" else False)
         meeting_obj.set_host(interaction.user.id)
         meeting_obj.set_link(self.children[3].value)
         meeting_obj.set_meeting_record_link(self.children[4].value)
         real_logger.info(f"已預定/編輯會議 {unique_id}。")
         embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
         if self.children[1].value != "":
-            embed.add_field(name="簡介", value=self.children[1].value, inline=False)
+            embed.add_field(name="強制參加", value="已停用此會議的請假功能。", inline=False)
+        else:
+            embed.add_field(name="可請假", value="成員可透過指令或按鈕請假。", inline=False)
         embed.add_field(name="主持人", value=interaction.user.mention, inline=False)
         try:
             unix_start_time = datetime.datetime.timestamp(
@@ -161,9 +165,12 @@ class GetEventInfo(discord.ui.Modal):
         m = bot.get_channel(1128232150135738529)
         embed.title = "新會議"
         embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
-        embed.set_footer(
-            text=f"如要請假，請點選下方按鈕，或使用「/meeting 請假 會議id:{unique_id}」指令，並在會議開始前10分鐘處理完畢。")
-        await m.send(embed=embed, view=AbsentInView(unique_id))
+        if self.children[1].value != "":
+            embed.set_footer(text=f"若因故不能參加會議，請向主幹告知事由。")
+        else:
+            embed.set_footer(text=f"如要請假，最晚請在會議開始前10分鐘處理完畢。")
+        await m.send(embed=embed,
+                     view=AbsentInView(unique_id) if self.children[1].value == "" else None)
         real_logger.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
 
 
@@ -666,33 +673,40 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
                                                           f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                                   color=error_color)
         else:
-            absent_members_id = [i[0] for i in meeting_obj.get_absent_members()]
-            try:
-                author_id = ctx.author.id
-                author_mention = ctx.author.mention
-            except AttributeError:
-                author_id = ctx.user.id
-                author_mention = ctx.user.mention
-            if author_id in absent_members_id:
-                embed = discord.Embed(title="錯誤", description="你已經請過假了！", color=error_color)
+            absent_status = meeting_obj.get_absent_members()
+            if isinstance(absent_status, type(None)):
+                embed = discord.Embed(title="錯誤：強制參加",
+                                      description="此會議已被設置為「強制參加」，因此無法透過此系統請假。\n"
+                                                  "若因故不能參加會議，請向主幹告知事由。",
+                                      color=error_color)
             else:
-                meeting_obj.add_absent_member(author_id, 原因)
-                absent_record_channel = bot.get_channel(1126031617614426142)
-                user = json_assistant.User(author_id)
-                absent_record_embed = discord.Embed(title="假單",
-                                                    description=f"{author_mention}({user.get_real_name()}) 預定不會出席"
-                                                                f"會議`{會議id}`**({meeting_obj.get_name()})**。",
-                                                    color=default_color)
-                absent_record_embed.add_field(name="請假原因", value=原因, inline=False)
-                if meeting_obj.get_absent_members():
-                    absent_members_str = ""
-                    for m in meeting_obj.get_absent_members():
-                        member_real_name = json_assistant.User(m[0]).get_real_name()
-                        absent_members_str += f"<@{m[0]}>({member_real_name}) - *{m[1]}*\n"
-                    absent_record_embed.add_field(name="請假人員", value=absent_members_str, inline=False)
-                await absent_record_channel.send(embed=absent_record_embed)
-                embed = discord.Embed(title="請假成功", description="你已經成功請假。", color=default_color)
-                embed.add_field(name="會議ID", value=f"`{會議id}`", inline=False)
+                absent_members_id = [i[0] for i in absent_status]
+                try:
+                    author_id = ctx.author.id
+                    author_mention = ctx.author.mention
+                except AttributeError:
+                    author_id = ctx.user.id
+                    author_mention = ctx.user.mention
+                if author_id in absent_members_id:
+                    embed = discord.Embed(title="錯誤", description="你已經請過假了！", color=error_color)
+                else:
+                    meeting_obj.add_absent_member(author_id, 原因)
+                    absent_record_channel = bot.get_channel(1126031617614426142)
+                    user = json_assistant.User(author_id)
+                    absent_record_embed = discord.Embed(title="假單",
+                                                        description=f"{author_mention}({user.get_real_name()}) 預定不會出席"
+                                                                    f"會議`{會議id}`**({meeting_obj.get_name()})**。",
+                                                        color=default_color)
+                    absent_record_embed.add_field(name="請假原因", value=原因, inline=False)
+                    if meeting_obj.get_absent_members():
+                        absent_members_str = ""
+                        for m in meeting_obj.get_absent_members():
+                            member_real_name = json_assistant.User(m[0]).get_real_name()
+                            absent_members_str += f"<@{m[0]}>({member_real_name}) - *{m[1]}*\n"
+                        absent_record_embed.add_field(name="請假人員", value=absent_members_str, inline=False)
+                    await absent_record_channel.send(embed=absent_record_embed)
+                    embed = discord.Embed(title="請假成功", description="你已經成功請假。", color=default_color)
+                    embed.add_field(name="會議ID", value=f"`{會議id}`", inline=False)
     else:
         embed = discord.Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
     try:
