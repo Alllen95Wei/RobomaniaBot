@@ -166,9 +166,9 @@ class GetEventInfo(discord.ui.Modal):
         embed.title = "新會議"
         embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
         if self.children[1].value != "":
-            embed.set_footer(text=f"若因故不能參加會議，請向主幹告知事由。")
+            embed.set_footer(text="若因故不能參加會議，請向主幹告知事由。")
         else:
-            embed.set_footer(text=f"如要請假，最晚請在會議開始前10分鐘處理完畢。")
+            embed.set_footer(text="如要請假，最晚請在會議開始前10分鐘處理完畢。")
         await m.send(embed=embed,
                      view=AbsentInView(unique_id) if self.children[1].value == "" else None)
         real_logger.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
