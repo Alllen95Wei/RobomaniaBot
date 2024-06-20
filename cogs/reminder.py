@@ -51,7 +51,7 @@ class Reminder(commands.Cog):
                     mention_msg = "@everyone"
                 else:
                     for role in mention_roles:
-                        mention_msg += f"<@{role}>"
+                        mention_msg += f"<@&{role}>"
                 await channel.send(content=mention_msg, embed=embed)
                 r_obj.set_notified(True)
 
@@ -165,7 +165,7 @@ class Reminder(commands.Cog):
             if mention_roles:
                 mention_msg = ""
                 for r in mention_roles:
-                    mention_msg += f"<@{r}>"
+                    mention_msg += f"<@&{r}>"
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
         else:
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
@@ -196,7 +196,7 @@ class Reminder(commands.Cog):
             if mention_roles:
                 mention_msg = ""
                 for r in mention_roles:
-                    mention_msg += f"<@{r}>"
+                    mention_msg += f"<@&{r}>"
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
         else:
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
