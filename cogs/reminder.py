@@ -119,36 +119,44 @@ class Reminder(commands.Cog):
     reminder_cmds = discord.SlashCommandGroup(name="reminder")
 
     @reminder_cmds.command(name="新增", description="新增提醒事項。")
-    async def add(self, ctx):
+    async def add(self, ctx: discord.ApplicationContext):
         await ctx.send_modal(self.ReminderEditor())
 
     @reminder_cmds.command(name="編輯", description="編輯提醒事項。")
-    async def edit(self, ctx,
+    async def edit(self, ctx: discord.ApplicationContext,
                    reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5, required=True)):
-        if reminder_id in json_assistant.Reminder.get_all_reminder_id():
-            await ctx.send_modal(self.ReminderEditor(reminder_id))
-        else:
+        if reminder_id not in json_assistant.Reminder.get_all_reminder_id():
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
             await ctx.respond(embed=embed)
+        elif ctx.author.id != json_assistant.Reminder(reminder_id):
+            embed = Embed(title="錯誤", description="僅有提醒事項建立者可以刪除此提醒事項。", color=error_color)
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.send_modal(self.ReminderEditor(reminder_id))
 
     @reminder_cmds.command(name="刪除", description="刪除提醒事項。")
-    async def delete_cmd(self, ctx,
+    async def delete_cmd(self, ctx: discord.ApplicationContext,
                          reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5, required=True)):
-        if reminder_id in json_assistant.Reminder.get_all_reminder_id():
-            embed = Embed(title="刪除成功", description=f"已經刪除提醒事項 `{reminder_id}`。", color=default_color)
-        else:
+        if reminder_id not in json_assistant.Reminder.get_all_reminder_id():
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
+        elif ctx.author.id != json_assistant.Reminder(reminder_id):
+            embed = Embed(title="錯誤", description="僅有提醒事項建立者可以刪除此提醒事項。", color=error_color)
+        else:
+            json_assistant.Reminder(reminder_id).delete()
+            embed = Embed(title="刪除成功", description=f"已經刪除提醒事項 `{reminder_id}`。", color=default_color)
         await ctx.respond(embed=embed)
 
     @reminder_cmds.command(name="新增提及身分組",
                            description="新增「在提醒事項傳送通知」時，會被提及的身分組。一次最多新增3個。")
-    async def add_mention_role_cmd(self, ctx,
+    async def add_mention_role_cmd(self, ctx: discord.ApplicationContext,
                                    reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5,
                                                        required=True),
                                    role_1: Option(discord.Role, name="身分組1", required=True),
                                    role_2: Option(discord.Role, name="身分組2", required=False) = None,
                                    role_3: Option(discord.Role, name="身分組3", required=False) = None):
-        if reminder_id in json_assistant.Reminder.get_all_reminder_id():
+        if reminder_id not in json_assistant.Reminder.get_all_reminder_id():
+            embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
+        else:
             roles = [role_1.id]
             if role_2 is not None:
                 roles.append(role_2.id)
@@ -167,13 +175,11 @@ class Reminder(commands.Cog):
                 for r in mention_roles:
                     mention_msg += f"<@&{r}>"
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
-        else:
-            embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
         await ctx.respond(embed=embed)
 
     @reminder_cmds.command(name="移除提及身分組",
                            description="移除「在提醒事項傳送通知」時，會被提及的身分組。一次最多移除3個。")
-    async def remove_mention_role_cmd(self, ctx,
+    async def remove_mention_role_cmd(self, ctx: discord.ApplicationContext,
                                       reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5,
                                                           required=True),
                                       role_1: Option(discord.Role, name="身分組1", required=True),
