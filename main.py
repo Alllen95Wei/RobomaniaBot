@@ -1008,5 +1008,5 @@ async def on_voice_state_update(member, before, after):
             f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。",
             delete_after=43200)
 
-# bot.load_extensions("cogs.reminder")
+bot.load_extensions("cogs.reminder")
 bot.run(TOKEN)
