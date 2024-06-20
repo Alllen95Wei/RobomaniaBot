@@ -129,6 +129,15 @@ class Reminder(commands.Cog):
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
             await ctx.respond(embed=embed)
 
+    @reminder_cmds.command(name="刪除", description="刪除提醒事項。")
+    async def delete_cmd(self, ctx,
+                         reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5, required=True)):
+        if reminder_id in json_assistant.Reminder.get_all_reminder_id():
+            embed = Embed(title="刪除成功", description=f"已經刪除提醒事項 `{reminder_id}`。", color=default_color)
+        else:
+            embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
+        await ctx.respond(embed=embed)
+
     @reminder_cmds.command(name="新增提及身分組",
                            description="新增「在提醒事項傳送通知」時，會被提及的身分組。一次最多新增3個。")
     async def add_mention_role_cmd(self, ctx,

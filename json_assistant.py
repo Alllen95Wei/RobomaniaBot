@@ -671,3 +671,7 @@ class Reminder:
         reminder_info = self.get_raw_info()
         reminder_info["notified"] = is_notified
         self.write_raw_info(reminder_info)
+
+    def delete(self):
+        file = os.path.join(base_dir, "reminder_data", str(self.reminder_id) + ".json")
+        os.remove(file)
