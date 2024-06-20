@@ -162,7 +162,7 @@ class Reminder(commands.Cog):
 
     @reminder_cmds.command(name="移除提及身分組",
                            description="移除「在提醒事項傳送通知」時，會被提及的身分組。一次最多移除3個。")
-    async def add_mention_role_cmd(self, ctx,
+    async def remove_mention_role_cmd(self, ctx,
                                    reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5,
                                                        required=True),
                                    role_1: Option(discord.Role, name="身分組1", required=True),
