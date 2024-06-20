@@ -30,11 +30,13 @@ class Reminder(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_reminders(self):
+        self.real_logger.debug("開始檢查提醒事項...")
         id_list = json_assistant.Reminder.get_all_reminder_id()
         for r in id_list:
             r_obj = json_assistant.Reminder(r)
             end_time = r_obj.get_time()
             if not r_obj.get_notified() and time.time() >= end_time:
+                self.real_logger.debug(f"提醒事項 {r} 的時間已到！")
                 embed = Embed(title="提醒事項的時間已到！",
                               description=f"提醒事項**「{r_obj.get_title()}」**已在<t:{r_obj.get_time()}:F>到期！",
                               color=default_color)
