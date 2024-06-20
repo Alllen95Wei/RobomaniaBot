@@ -169,7 +169,7 @@ class Reminder(commands.Cog):
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
         else:
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
-            await ctx.respond(embed=embed)
+        await ctx.respond(embed=embed)
 
     @reminder_cmds.command(name="移除提及身分組",
                            description="移除「在提醒事項傳送通知」時，會被提及的身分組。一次最多移除3個。")
@@ -200,7 +200,7 @@ class Reminder(commands.Cog):
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
         else:
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
-            await ctx.respond(embed=embed)
+        await ctx.respond(embed=embed)
 
 
 def setup(bot):
