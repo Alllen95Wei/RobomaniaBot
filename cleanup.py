@@ -1,3 +1,4 @@
+# coding=utf-8
 import discord
 from discord.ext import commands
 import os
@@ -28,6 +29,11 @@ async def on_ready():
         message_path = os.path.join(os.path.dirname(__file__), "message_data")
         for file in os.listdir(message_path):
             os.remove(os.path.join(message_path, file))
+            print("刪除檔案：", file)
+        print("刪除完畢。")
+        reminder_path = os.path.join(os.path.dirname(__file__), "reminder_data")
+        for file in os.listdir(reminder_path):
+            os.remove(os.path.join(reminder_path, file))
             print("刪除檔案：", file)
         print("刪除完畢。")
         archived_meeting_path = os.path.join(os.path.dirname(__file__), "archived", "meeting")

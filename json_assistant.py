@@ -566,6 +566,7 @@ class Reminder:
             empty_data = {
                 "title": "",
                 "description": "",
+                "mention_roles": [],
                 "progress": 0,
                 "sub_tasks": [],
                 "author": 0,
@@ -596,6 +597,30 @@ class Reminder:
         reminder_info = self.get_raw_info()
         reminder_info["description"] = description
         self.write_raw_info(reminder_info)
+
+    def get_mention_roles(self) -> list[int]:
+        reminder_info = self.get_raw_info()
+        return reminder_info.get("mention_roles", [])
+
+    def add_mention_roles(self, roles_to_add: list[int]) -> list[int]:
+        reminder_info = self.get_raw_info()
+        for role in roles_to_add:
+            if role not in reminder_info["mention_roles"]:
+                reminder_info["mention_roles"].append(role)
+            else:
+                roles_to_add.remove(role)
+        self.write_raw_info(reminder_info)
+        return roles_to_add
+
+    def remove_mention_roles(self, roles_to_remove: list[int]) -> list[int]:
+        reminder_info = self.get_raw_info()
+        for role in roles_to_remove:
+            if role in reminder_info["mention_roles"]:
+                reminder_info["mention_roles"].remove(role)
+            else:
+                roles_to_remove.remove(role)
+        self.write_raw_info(reminder_info)
+        return roles_to_remove
 
     def get_progress(self) -> int:
         reminder_info = self.get_raw_info()
@@ -629,11 +654,11 @@ class Reminder:
         reminder_info["author"] = author
         self.write_raw_info(reminder_info)
 
-    def get_time(self) -> int | float:
+    def get_time(self) -> int:
         reminder_info = self.get_raw_info()
         return reminder_info.get("time", 0)
 
-    def set_time(self, time: int | float):
+    def set_time(self, time: int):
         reminder_info = self.get_raw_info()
         reminder_info["time"] = time
         self.write_raw_info(reminder_info)
