@@ -44,7 +44,7 @@ class Reminder(commands.Cog):
                                 value=r_obj.get_description() if r_obj.get_description() != "" else "(無)",
                                 inline=False)
                 embed.add_field(name="建立者", value=f"<@{r_obj.get_author()}>", inline=False)
-                channel = self.bot.get_channel(1114424382622793809)
+                channel = self.bot.get_channel(1128232150135738529)
                 mention_msg = ""
                 mention_roles = r_obj.get_mention_roles()
                 if not mention_roles:
