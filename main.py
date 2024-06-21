@@ -68,9 +68,9 @@ async def check_meeting():
                 elif meeting_obj.get_notified() is False and meeting_obj.get_start_time() - time.time() <= 300:
                     real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
                     embed = Embed(title="會議即將開始！",
-                                          description=f"會議**「{meeting_obj}」**即將於"
-                                                      f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
-                                          color=default_color)
+                                  description=f"會議**「{meeting_obj}」**即將於"
+                                              f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                  color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
@@ -119,13 +119,13 @@ class GetEventInfo(discord.ui.Modal):
         if self.meeting_id is not None:
             unique_id = self.meeting_id
             embed = Embed(title="編輯會議",
-                                  description=f"會議 `{unique_id}` **({self.children[0].value})** 已經編輯成功！",
-                                  color=default_color)
+                          description=f"會議 `{unique_id}` **({self.children[0].value})** 已經編輯成功！",
+                          color=default_color)
         else:
             unique_id = json_assistant.Meeting.create_new_meeting()
             embed = Embed(title="預定新會議",
-                                  description=f"你預定的會議：**{self.children[0].value}**，已經預定成功！",
-                                  color=default_color)
+                          description=f"你預定的會議：**{self.children[0].value}**，已經預定成功！",
+                          color=default_color)
         meeting_obj = json_assistant.Meeting(unique_id)
         meeting_obj.set_name(self.children[0].value)
         meeting_obj.disable_absent(True if self.children[1].value != "" else False)
@@ -144,8 +144,8 @@ class GetEventInfo(discord.ui.Modal):
                 datetime.datetime.strptime(self.children[2].value, "%Y/%m/%d %H:%M").replace(tzinfo=now_tz))
             if unix_start_time < time.time():
                 embed = Embed(title="錯誤",
-                                      description=f"輸入的開始時間(<t:{int(unix_start_time)}:F>)已經過去！請重新輸入。",
-                                      color=error_color)
+                              description=f"輸入的開始時間(<t:{int(unix_start_time)}:F>)已經過去！請重新輸入。",
+                              color=error_color)
                 await interaction.response.edit_message(embed=embed)
                 return
             else:
@@ -153,8 +153,8 @@ class GetEventInfo(discord.ui.Modal):
                 embed.add_field(name="開始時間", value=f"<t:{int(unix_start_time)}:F>", inline=False)
         except ValueError:
             embed = Embed(title="錯誤",
-                                  description=f"輸入的開始時間(`{self.children[2].value}`)格式錯誤！請重新輸入。",
-                                  color=error_color)
+                          description=f"輸入的開始時間(`{self.children[2].value}`)格式錯誤！請重新輸入。",
+                          color=error_color)
             await interaction.response.edit_message(embed=embed)
             return
         embed.add_field(name="會議地點", value=self.children[3].value, inline=False)
@@ -269,8 +269,8 @@ async def ping(ctx):
 async def on_application_command_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         embed = Embed(title="指令冷卻中",
-                              description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
-                              color=error_color)
+                      description=f"這個指令正在冷卻中，請在`{round(error.retry_after)}`秒後再試。",
+                      color=error_color)
         await ctx.respond(embed=embed, ephemeral=True)
     elif isinstance(error, commands.NotOwner) or isinstance(error, commands.MissingRole):
         embed = Embed(title="錯誤", description="你沒有權限使用此指令。", color=error_color)
@@ -342,7 +342,7 @@ async def member_set_real_name(ctx,
     member_data = json_assistant.User(隊員.id)
     member_data.set_real_name(真實姓名)
     embed = Embed(title="設定真實姓名", description=f"已將 {隊員.mention} 的真實姓名設定為 {真實姓名}。",
-                          color=default_color)
+                  color=default_color)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
 
@@ -355,7 +355,7 @@ async def member_add_job(ctx,
     member_data = json_assistant.User(隊員.id)
     member_data.add_job(職務)
     embed = Embed(title="新增職務", description=f"已將 {隊員.mention} 新增職務 {職務}。",
-                          color=default_color)
+                  color=default_color)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
 
@@ -368,7 +368,7 @@ async def member_remove_job(ctx,
     member_data = json_assistant.User(隊員.id)
     member_data.remove_job(職務)
     embed = Embed(title="移除職務", description=f"已將 {隊員.mention} 移除職務 {職務}。",
-                          color=default_color)
+                  color=default_color)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
 
@@ -381,7 +381,7 @@ async def member_add_meeting_time(ctx,
     member_data = json_assistant.User(隊員.id)
     member_data.add_meeting_time(會議時數)
     embed = Embed(title="新增會議時數", description=f"已將 {隊員.mention} 新增會議時數 {會議時數}。",
-                          color=default_color)
+                  color=default_color)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
 
@@ -453,8 +453,8 @@ async def member_add_warning_points(ctx,
     await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(title="退隊警告！",
-                                    description=f"{隊員.mention} 的點數已達到{current_points}點！",
-                                    color=error_color)
+                            description=f"{隊員.mention} 的點數已達到{current_points}點！",
+                            color=error_color)
         warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
         await ctx.channel.send(embed=warning_msg)
 
@@ -481,8 +481,8 @@ async def member_add_warning_points_with_exceptions(ctx,
         await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(title="退隊警告！",
-                                    description=f"{隊員.mention} 的點數已達到{current_points}點！",
-                                    color=error_color)
+                            description=f"{隊員.mention} 的點數已達到{current_points}點！",
+                            color=error_color)
         warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
         await ctx.channel.send(embed=warning_msg)
 
@@ -560,7 +560,7 @@ async def member_change_name_user(ctx, user: discord.Member):
     if real_name:
         await user.edit(nick=real_name)
         embed = Embed(title="改名", description=f"已將 {user.mention} 的名稱改為其真名({real_name})。",
-                              color=default_color)
+                      color=default_color)
     else:
         embed = Embed(title="改名", description=f"{user.mention} 沒有設定真名！", color=error_color)
     await ctx.respond(embed=embed, ephemeral=True)
@@ -621,7 +621,7 @@ async def edit_meeting(ctx, 會議id: Option(str, "欲修改的會議ID", min_le
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if 會議id in id_list:
         embed = Embed(title="編輯會議", description="請點擊下方的按鈕，開啟會議編輯視窗。",
-                              color=default_color)
+                      color=default_color)
         await ctx.respond(embed=embed, view=GetEventInfoInView(會議id), ephemeral=True)
     else:
         embed = Embed(title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color)
@@ -640,7 +640,7 @@ async def delete_meeting(ctx, 會議id: Option(str, "欲刪除的會議ID", min_
         else:
             m = bot.get_channel(1128232150135738529)
             notify_embed = Embed(title="會議取消", description=f"會議 `{會議id}` 已經取消。",
-                                         color=default_color)
+                                 color=default_color)
             notify_embed.add_field(name="會議標題", value=meeting_obj.get_name(), inline=False)
             notify_embed.add_field(name="取消原因", value=原因, inline=False)
             if meeting_obj.get_notified():
@@ -676,15 +676,15 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
             embed = Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                          f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
-                                  color=error_color)
+                                                  f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                          color=error_color)
         else:
             absent_status = meeting_obj.get_absent_members()
             if isinstance(absent_status, type(None)):
                 embed = Embed(title="錯誤：強制參加",
-                                      description="此會議已被設置為「強制參加」，因此無法透過此系統請假。\n"
-                                                  "若因故不能參加會議，請向主幹告知事由。",
-                                      color=error_color)
+                              description="此會議已被設置為「強制參加」，因此無法透過此系統請假。\n"
+                                          "若因故不能參加會議，請向主幹告知事由。",
+                              color=error_color)
             else:
                 absent_members_id = [i[0] for i in absent_status]
                 try:
@@ -700,9 +700,9 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
                     absent_record_channel = bot.get_channel(1126031617614426142)
                     user = json_assistant.User(author_id)
                     absent_record_embed = Embed(title="假單",
-                                                        description=f"{author_mention}({user.get_real_name()}) 預定不會出席"
-                                                                    f"會議`{會議id}`**({meeting_obj.get_name()})**。",
-                                                        color=default_color)
+                                                description=f"{author_mention}({user.get_real_name()}) 預定不會出席"
+                                                            f"會議`{會議id}`**({meeting_obj.get_name()})**。",
+                                                color=default_color)
                     absent_record_embed.add_field(name="請假原因", value=原因, inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members_str = ""
@@ -740,17 +740,17 @@ async def set_meeting_record_link(ctx,
         else:
             meeting_obj.set_meeting_record_link(連結)
             embed = Embed(title="設定會議記錄連結",
-                                  description=f"已將會議 `{meeting_id}` 的會議記錄連結設定為 `{連結}`。",
-                                  color=default_color)
+                          description=f"已將會議 `{meeting_id}` 的會議記錄連結設定為 `{連結}`。",
+                          color=default_color)
             if meeting_obj.get_absent_members():
                 notify_channel = bot.get_channel(1128232150135738529)
                 absent_members_str = ""
                 for m in meeting_obj.get_absent_members():
                     absent_members_str += f"<@{m[0]}> "
                 notify_embed = Embed(title="會議記錄連結",
-                                             description=f"會議 `{meeting_id}` 的會議記錄連結已經設定。\n"
-                                                         f"缺席的成員，請務必閱讀會議紀錄！",
-                                             color=default_color)
+                                     description=f"會議 `{meeting_id}` 的會議記錄連結已經設定。\n"
+                                                 f"缺席的成員，請務必閱讀會議紀錄！",
+                                     color=default_color)
                 notify_embed.add_field(name="會議名稱", value=meeting_obj.get_name(), inline=False)
                 notify_embed.add_field(name="會議記錄連結", value=連結, inline=False)
                 await notify_channel.send(content=absent_members_str, embed=notify_embed)
@@ -821,7 +821,7 @@ async def reply_to_leader_mail(ctx,
                                msg_id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
                                msg: Option(str, "回覆的訊息內容", required=True),  # noqa
                                response_type: Option(str, "選擇以公開或私人方式回覆", choices=["公開", "私人"],
-                                                required=True)):
+                                                     required=True)):
     if isinstance(ctx, discord.Interaction):
         await ctx.response.defer()
     else:
@@ -839,15 +839,15 @@ async def reply_to_leader_mail(ctx,
                 embed.add_field(name="你的回覆", value=mail.get_response())
             else:
                 response_embed = Embed(title="隊長信箱回覆", description="隊長回覆了信箱中的訊息！",
-                                               color=default_color)
+                                       color=default_color)
                 response_embed.add_field(name="你的訊息內容", value=mail.get_content(), inline=False)
                 response_embed.add_field(name="隊長的回覆內容", value=msg, inline=False)
                 if response_type == "公開":
                     response_channel = bot.get_channel(1152158914847199312)
                     await response_channel.send(embed=response_embed)
                     embed = Embed(title="回覆成功！",
-                                          description=f"已將你的回覆傳送到{response_channel.mention}。",
-                                          color=default_color)
+                                  description=f"已將你的回覆傳送到{response_channel.mention}。",
+                                  color=default_color)
                     embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
                     embed.add_field(name="你的回覆內容", value=msg, inline=False)
                 elif response_type == "私人":
@@ -855,14 +855,14 @@ async def reply_to_leader_mail(ctx,
                     try:
                         await sender.send(embed=response_embed)
                         embed = Embed(title="回覆成功！", description=f"已將你的回覆傳送給{sender.mention}。",
-                                              color=default_color)
+                                      color=default_color)
                         embed.add_field(name="對方的訊息內容", value=mail.get_content(), inline=False)
                         embed.add_field(name="你的回覆內容", value=msg, inline=False)
                     except discord.errors.HTTPException as error:
                         if error.code == 50007:
                             embed = Embed(title="錯誤",
-                                                  description=f"{sender.mention} 不允許機器人傳送私人訊息。",
-                                                  color=error_color)
+                                          description=f"{sender.mention} 不允許機器人傳送私人訊息。",
+                                          color=error_color)
                         else:
                             raise error
                 else:
@@ -1007,6 +1007,7 @@ async def on_voice_state_update(member, before, after):
         await before.channel.send(
             f"<:left:1208779447440777226> **{member_real_name}** 在 <t:{int(time.time())}:T> 離開大會。",
             delete_after=43200)
+
 
 bot.load_extensions("cogs.reminder")
 bot.run(TOKEN)
