@@ -185,7 +185,9 @@ class Reminder(commands.Cog):
                                       role_1: Option(discord.Role, name="身分組1", required=True),
                                       role_2: Option(discord.Role, name="身分組2", required=False) = None,
                                       role_3: Option(discord.Role, name="身分組3", required=False) = None):
-        if reminder_id in json_assistant.Reminder.get_all_reminder_id():
+        if reminder_id not in json_assistant.Reminder.get_all_reminder_id():
+            embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
+        else:
             roles = [role_1.id]
             if role_2 is not None:
                 roles.append(role_2.id)
@@ -204,8 +206,6 @@ class Reminder(commands.Cog):
                 for r in mention_roles:
                     mention_msg += f"<@&{r}>"
             embed.add_field(name="下列的身分組將會在傳送通知時被提及：", value=mention_msg, inline=False)
-        else:
-            embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
         await ctx.respond(embed=embed)
 
 
