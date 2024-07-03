@@ -114,6 +114,9 @@ class Reminder(commands.Cog):
             embed.add_field(name="名稱", value=self.children[0].value, inline=False)
             if self.children[1].value != "":
                 embed.add_field(name="說明", value=self.children[1].value, inline=False)
+            embed.add_field(name="設定提及身分組",
+                            value=f"你還可以透過</reminder 新增提及身分組:1253327919309389897>來設定時間到時，機器人應提及哪些身分組。",
+                            inline=False)
             await interaction.followup.send(embed=embed)
 
     reminder_cmds = discord.SlashCommandGroup(name="reminder")
