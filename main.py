@@ -605,7 +605,7 @@ async def member_get_all_warning_history(ctx):
     await ctx.respond(embed=embed)
 
 
-meeting = discord.SlashCommandGroup(name="meeting", description="會議相關指令。")
+meeting = bot.create_group(name="meeting", description="會議相關指令。")
 
 
 @meeting.command(name="建立", description="預定新的會議。")
