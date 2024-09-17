@@ -132,7 +132,7 @@ class Reminder(commands.Cog):
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
             await ctx.respond(embed=embed)
         elif ctx.user.id != json_assistant.Reminder(reminder_id).get_author():
-            embed = Embed(title="錯誤", description="僅有提醒事項建立者可以刪除此提醒事項。", color=error_color)
+            embed = Embed(title="錯誤", description="僅有提醒事項建立者可以編輯此提醒事項。", color=error_color)
             await ctx.respond(embed=embed)
         else:
             await ctx.send_modal(self.ReminderEditor(reminder_id))
@@ -142,7 +142,7 @@ class Reminder(commands.Cog):
                          reminder_id: Option(str, name="提醒事項id", min_length=5, max_length=5, required=True)):
         if reminder_id not in json_assistant.Reminder.get_all_reminder_id():
             embed = Embed(title="錯誤", description=f"提醒事項 `{reminder_id}` 不存在！", color=error_color)
-        elif ctx.user.id != json_assistant.Reminder(reminder_id):
+        elif ctx.user.id != json_assistant.Reminder(reminder_id).get_author():
             embed = Embed(title="錯誤", description="僅有提醒事項建立者可以刪除此提醒事項。", color=error_color)
         else:
             json_assistant.Reminder(reminder_id).delete()
