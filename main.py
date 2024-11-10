@@ -1009,5 +1009,5 @@ async def on_voice_state_update(member, before, after):
             delete_after=43200)
 
 
-bot.load_extensions("cogs.reminder")
+bot.load_extensions("cogs.reminder", "cogs.verification")
 bot.run(TOKEN)
