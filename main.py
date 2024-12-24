@@ -911,9 +911,9 @@ async def about(ctx,
     embed = Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(name="程式碼與授權", value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-                                               "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-                                               "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/"
-                                               "RobomaniaBot)查看。",
+                                         "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+                                         "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
+                                         "查看。",
                     inline=True)
     embed.add_field(name="聯絡", value="如果有任何技術問題及建議，請聯絡<@657519721138094080>。", inline=True)
     repo = git.Repo(search_parent_directories=True)
