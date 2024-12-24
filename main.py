@@ -996,19 +996,20 @@ async def on_message(message):
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    member_real_name = json_assistant.User(member.id).get_real_name()
-    if member_real_name is None:
-        member_real_name = member.name
-    if not before.channel and after.channel:
-        await after.channel.send(
-            f"<:join:1208779348438683668> **{member_real_name}** "
-            f"在 <t:{int(time.time())}:T> 加入 {after.channel.mention}。",
-            delete_after=43200)
-    elif not after.channel and before.channel and before.channel.id == 1114209308910026792:
-        await before.channel.send(
-            f"<:left:1208779447440777226> **{member_real_name}** "
-            f"在 <t:{int(time.time())}:T> 離開 {after.channel.mention}。",
-            delete_after=43200)
+    if before.channel != after.channel:
+        member_real_name = json_assistant.User(member.id).get_real_name()
+        if member_real_name is None:
+            member_real_name = member.name
+        if before.channel is not None:
+            await before.channel.send(
+                f"<:left:1208779447440777226> **{member_real_name}** "
+                f"在 <t:{int(time.time())}:T> 離開 {after.channel.mention}。",
+                delete_after=43200)
+        if after.channel is not None:
+            await after.channel.send(
+                f"<:join:1208779348438683668> **{member_real_name}** "
+                f"在 <t:{int(time.time())}:T> 加入 {after.channel.mention}。",
+                delete_after=43200)
 
 
 bot.load_extensions("cogs.reminder", "cogs.verification")
