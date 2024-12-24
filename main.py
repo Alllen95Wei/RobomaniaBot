@@ -316,11 +316,14 @@ async def member_info(ctx,
 async def member_list_bad_guys(ctx):
     members = json_assistant.User.get_all_user_id()
     embed = Embed(title="遭記點隊員清單", description="以下為點數不為0的所有隊員：", color=default_color)
+    bad_guys: list[dict[str, str | float | int]] = []
     for m in members:
         member_obj = json_assistant.User(m)
         if member_obj.get_warning_points() != 0:
-            embed.add_field(name=member_obj.get_real_name(), value=f"點數：`{member_obj.get_warning_points()}`點",
-                            inline=False)
+            bad_guys.append({"name": member_obj.get_real_name(), "points": member_obj.get_warning_points()})
+    bad_guys.sort(key=lambda x: x["points"], reverse=True)
+    for bad_guy in bad_guys:
+        embed.add_field(name=bad_guy["name"], value=f"`{bad_guy['points']}` 點", inline=False)
     if len(embed.fields) == 0:
         embed.add_field(name="(沒有遭記點隊員)", value="所有人目前皆無點數！", inline=False)
     await ctx.respond(embed=embed)
