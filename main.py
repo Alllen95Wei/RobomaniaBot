@@ -452,11 +452,11 @@ async def member_add_warning_points(ctx,
         embed.add_field(name="附註事項", value=附註, inline=False)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
-    mention_text = f"{隊員.mention} 由於**「{reason}」**，依照隊規記上{points}點。"
+    mention_text = f"{隊員.mention} 由於**「{reason}」**，依照隊規記上 {points} 點。"
     await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(title="退隊警告！",
-                            description=f"{隊員.mention} 的點數已達到{current_points}點！",
+                            description=f"{隊員.mention} 的點數已達到 {current_points} 點！",
                             color=error_color)
         warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
         await ctx.channel.send(embed=warning_msg)
@@ -480,11 +480,11 @@ async def member_add_warning_points_with_exceptions(ctx,
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
     if 點數 > 0:
-        mention_text = f"{隊員.mention} 由於**「{事由}」**，記上{點數}點。"
+        mention_text = f"{隊員.mention} 由於**「{事由}」**，記上 {點數} 點。"
         await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(title="退隊警告！",
-                            description=f"{隊員.mention} 的點數已達到{current_points}點！",
+                            description=f"{隊員.mention} 的點數已達到 {current_points} 點！",
                             color=error_color)
         warning_msg.set_footer(text="此訊息僅作為提醒，並非正式的退隊通知。實際處置以主幹為準。")
         await ctx.channel.send(embed=warning_msg)
@@ -574,7 +574,7 @@ async def member_get_warning_history(ctx,
                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
     member_data = json_assistant.User(隊員.id)
     embed = Embed(title="記點紀錄", description=f"{隊員.mention} 的記點紀錄", color=default_color)
-    embed.add_field(name="目前點數", value=member_data.get_warning_points(), inline=False)
+    embed.add_field(name="目前點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
     raw_history = member_data.get_raw_warning_history()
     if len(raw_history) == 0:
         embed.add_field(name="(無紀錄)", value="表現優良！", inline=False)
