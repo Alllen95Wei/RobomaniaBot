@@ -50,12 +50,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                 f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                             f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                   color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -676,7 +676,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
             embed = Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                    f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                  f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                           color=error_color)
         else:
             absent_status = meeting_obj.get_absent_members()
@@ -809,10 +809,10 @@ async def send_message_to_leader(ctx,
     embed = Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-                                                            "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
     embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-                                                        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-                                                        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
     await ctx.respond(embed=embed, ephemeral=True)
 
 
