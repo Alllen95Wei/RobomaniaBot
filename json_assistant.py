@@ -108,8 +108,7 @@ class User:
         user_info = self.get_raw_info()
         return user_info["warning_points"]
 
-    def add_warning_points(self, points: [float, int], reason: str, note: str = None):
-
+    def add_warning_points(self, points: float | int, reason: str, note: str = None):
         user_info = self.get_raw_info()
         user_info["warning_points"] += points
         user_info["warning_history"].append(
@@ -146,7 +145,7 @@ class User:
             return []
 
     @staticmethod
-    def add_warning_history(user_id, points: [float, int], reason: str, note: str = None):
+    def add_warning_history(user_id, points: float | int, reason: str, note: str = None):
         file = os.path.join(base_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
