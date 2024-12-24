@@ -46,7 +46,7 @@ class User:
             except UnicodeDecodeError:
                 print(f"Error occurred when converting {user}.json from big5 to utf-8.")
 
-    def get_raw_info(self):
+    def get_raw_info(self) -> dict:
         file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
@@ -104,7 +104,7 @@ class User:
         user_info["total_meeting_time"] += time
         self.write_raw_info(user_info)
 
-    def get_warning_points(self):
+    def get_warning_points(self) -> float | int:
         user_info = self.get_raw_info()
         return user_info["warning_points"]
 
