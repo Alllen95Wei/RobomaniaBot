@@ -302,12 +302,12 @@ async def member_info(ctx,
         for job in member_data.get_jobs():
             jobs_str += f"* {job}\n"
     else:
-        jobs_str = "None"
+        jobs_str = "(無)"
     embed = Embed(title="隊員資訊", description=f"{隊員.mention} 的資訊", color=default_color)
     embed.add_field(name="真實姓名", value=member_data.get_real_name(), inline=False)
     embed.add_field(name="職務", value=jobs_str, inline=False)
     # embed.add_field(name="總計會議時數", value=member_data.get_total_meeting_time(), inline=False)
-    embed.add_field(name="警告點數", value=member_data.get_warning_points(), inline=False)
+    embed.add_field(name="警告點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
     embed.set_thumbnail(url=隊員.display_avatar)
     await ctx.respond(embed=embed)
 
