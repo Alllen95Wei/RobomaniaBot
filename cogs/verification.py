@@ -11,7 +11,6 @@ import logging
 import logger
 import json_assistant
 
-
 error_color = 0xF1411C
 default_color = 0x012a5e
 now_tz = zoneinfo.ZoneInfo("Asia/Taipei")
@@ -105,12 +104,15 @@ class Verification(commands.Cog):
                 logging.warning(f"{type(e).__name__}: {e}")
             notify_embed = Embed(
                 title="你的身分已經過驗證！",
-                description="管理員在經過審核後，已確認了你的身分。\n你的真名已經記錄在資料庫中，並且設為你在伺服器中的暱稱。\n感謝你的配合！",
+                description="管理員在經過審核後，已確認了你的身分。\n"
+                            "你的真名已經記錄在資料庫中，並且設為你在伺服器中的暱稱。\n"
+                            "感謝你的配合！",
                 color=default_color
             )
             await self.member.send(embed=notify_embed)
             self.disable_all_items()
-            embed = Embed(title="已完成審核", description=f"{interaction.user.mention}已確認此審核要求。", color=default_color)
+            embed = Embed(title="已完成審核", description=f"{interaction.user.mention}已確認此審核要求。",
+                          color=default_color)
             embed.add_field(name="審核結果", value="✅ 通過")
             await interaction.edit_original_response(view=self)
             await interaction.followup.send(embed=embed)
@@ -123,7 +125,8 @@ class Verification(commands.Cog):
             logging.info(f"{self.member.name} 的身分已被 {interaction.user.name} 撤回")
             notify_embed = Embed(
                 title="你的身分未通過驗證",
-                description="管理員在經過審核後，認為你所提供的身分有問題。\n請私訊伺服器管理員以了解詳情。",
+                description="管理員在經過審核後，認為你所提供的身分有問題。\n"
+                            "請私訊伺服器管理員以了解詳情。",
                 color=error_color
             )
             await self.member.send(embed=notify_embed)
