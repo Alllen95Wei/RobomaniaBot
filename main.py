@@ -889,12 +889,6 @@ async def reply_to_leader_mail(ctx,
 #     await ctx.respond(embed=embed)
 
 
-@bot.slash_command(name="轉換編碼", description="將檔案轉換編碼為UTF-8。")
-@commands.is_owner()
-async def convert_encoding(ctx):
-    json_assistant.User.convert_big5_to_utf8()
-
-
 @bot.slash_command(name="debug", description="(開發者專用)除錯用")
 @commands.is_owner()
 async def debug(ctx):
