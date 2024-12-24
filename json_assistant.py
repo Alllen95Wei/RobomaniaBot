@@ -56,7 +56,7 @@ class User:
             empty_data = {"real_name": None,
                           "total_meeting_time": 0,
                           "jobs": [],
-                          "warning_points": 0,
+                          "warning_points": 0.0,
                           "warning_history":
                               [["time", "reason", "points", "note"]],
                           }
