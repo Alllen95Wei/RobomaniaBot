@@ -411,41 +411,15 @@ async def member_add_warning_points(ctx,
                                     附註: Option(str, "附註事項", required=False)):  # noqa
     reason = 記點事由[5:]
     member_data = json_assistant.User(隊員.id)
-    if 記點事由 == "半點 - 垃圾亂丟":
-        member_data.add_warning_points(0.5, reason, 附註)
+    points = 記點事由[0:1]
+    if points == "半":
         points = 0.5
-    elif 記點事由 == "半點 - 開會/培訓 無故遲到(5分鐘)":
-        member_data.add_warning_points(0.5, reason, 附註)
-        points = 0.5
-    elif 記點事由 == "1點 - 開會/培訓 無故未到":
-        member_data.add_warning_points(1, reason, 附註)
-        points = 1
-    elif 記點事由 == "1點 - 兩天內沒有交工筆(賽季時為三天)":
-        member_data.add_warning_points(1, reason, 附註)
-        points = 1
-    elif 記點事由 == "1點 - 謊報請假時間/原因":
-        member_data.add_warning_points(1, reason, 附註)
-        points = 1
-    elif 記點事由 == "1點 - 無故遲交文件超過一天":
-        member_data.add_warning_points(1, reason, 附註)
-        points = 1
-    elif 記點事由 == "2點 - 上課/工作時滑手機":
-        member_data.add_warning_points(2, reason, 附註)
-        points = 2
-    elif 記點事由 == "2點 - 打遊戲太吵":
-        member_data.add_warning_points(2, reason, 附註)
-        points = 2
-    elif 記點事由 == "2點 - 操作不當導致公安意外":
-        member_data.add_warning_points(2, reason, 附註)
-        points = 2
-    elif 記點事由 == "3點 - 嚴重影響隊伍形象":
-        member_data.add_warning_points(3, reason, 附註)
-        points = 3
     else:
-        points = 0
+        points = int(points)
+    member_data.add_warning_points(points, reason, 附註)
     current_points = member_data.get_warning_points()
     embed = Embed(title="記點", description=f"已將 {隊員.mention} 記點。", color=default_color)
-    embed.add_field(name="記點點數", value=str(points), inline=True)
+    embed.add_field(name="記點點數", value=f"`{points}` 點", inline=True)
     embed.add_field(name="目前點數(已加上新點數)", value=str(current_points), inline=True)
     embed.add_field(name="記點事由", value=reason, inline=False)
     if 附註 is not None:
