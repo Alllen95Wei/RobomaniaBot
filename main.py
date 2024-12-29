@@ -479,17 +479,12 @@ async def member_remove_warning_points(ctx,
                                        附註: Option(str, "附註事項", required=False)):  # noqa
     reason = 銷點事由[5:]
     member_data = json_assistant.User(隊員.id)
-    if 銷點事由 == "半點 - 自主倒垃圾":
-        member_data.add_warning_points(-0.5, reason, 附註)
-        points = 0.5
-    elif 銷點事由 == "半點 - 培訓時去外面拿午餐":
-        member_data.add_warning_points(-0.5, reason, 附註)
-        points = 0.5
-    elif 銷點事由 == "1點 - 中午時間/第八節 打掃工作室":
-        member_data.add_warning_points(-1, reason, 附註)
-        points = 1
+    points = 銷點事由[0:1]
+    if points == "半":
+        points = -0.5
     else:
-        points = 0
+        points = int(points) * -1
+    member_data.add_warning_points(points, reason, 附註)
     embed = Embed(title="銷點", description=f"已將 {隊員.mention} 銷點。", color=default_color)
     if member_data.get_warning_points() < 0:
         member_data.add_warning_points(-member_data.get_warning_points(), "防止負點發生",
