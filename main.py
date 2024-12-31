@@ -420,7 +420,7 @@ async def member_add_warning_points(ctx,
     current_points = member_data.get_warning_points()
     embed = Embed(title="記點", description=f"已將 {隊員.mention} 記點。", color=default_color)
     embed.add_field(name="記點點數", value=f"`{points}` 點", inline=True)
-    embed.add_field(name="目前點數(已加上新點數)", value=str(current_points), inline=True)
+    embed.add_field(name="目前點數 (已加上新點數)", value=f"`{current_points}` 點", inline=True)
     embed.add_field(name="記點事由", value=reason, inline=False)
     if 附註 is not None:
         embed.add_field(name="附註事項", value=附註, inline=False)
@@ -448,7 +448,7 @@ async def member_add_warning_points_with_exceptions(ctx,
     current_points = member_data.get_warning_points()
     embed = Embed(title="意外記/銷點", description=f"已將 {隊員.mention} 記/銷點。", color=default_color)
     embed.add_field(name="記點點數", value=str(點數), inline=True)
-    embed.add_field(name="目前點數(已加上/減去新點數)", value=str(current_points), inline=True)
+    embed.add_field(name="目前點數 (已加上/減去新點數)", value=f"`{current_points}` 點", inline=True)
     embed.add_field(name="記點事由", value="使用「意外記/銷點」指令", inline=False)
     embed.add_field(name="附註事項", value=事由, inline=False)
     embed.set_thumbnail(url=隊員.display_avatar)
@@ -491,7 +491,7 @@ async def member_remove_warning_points(ctx,
                                        "為避免記點點數為負，機器人已自動將點數設為0。")
         embed.set_footer(text="為避免記點點數為負，機器人已自動將點數設為0。")
     embed.add_field(name="銷點點數", value=str(points), inline=True)
-    embed.add_field(name="目前點數(已減去新點數)", value=str(member_data.get_warning_points()), inline=True)
+    embed.add_field(name="目前點數 (已減去新點數)", value=f"`{member_data.get_warning_points()}` 點", inline=True)
     embed.add_field(name="銷點事由", value=reason, inline=False)
     if 附註 is not None:
         embed.add_field(name="附註事項", value=附註, inline=False)
