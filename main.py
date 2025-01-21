@@ -969,7 +969,7 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         if not isinstance(before.channel, type(None)):
             await before.channel.send(
                 f"<:left:1208779447440777226> **{member_real_name}** "
-                f"在 <t:{int(time.time())}:T> 離開 {after.channel.mention}。",
+                f"在 <t:{int(time.time())}:T> 離開 {before.channel.mention}。",
                 delete_after=43200)
         if not isinstance(after.channel, type(None)):
             await after.channel.send(
