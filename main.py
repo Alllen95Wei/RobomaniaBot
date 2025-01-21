@@ -962,16 +962,16 @@ async def on_message(message):
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    if before.channel != after.channel:
+    if before.channel is None or after.channel is None or before.channel.id != after.channel.id:
         member_real_name = json_assistant.User(member.id).get_real_name()
         if member_real_name is None:
             member_real_name = member.name
-        if before.channel is not None:
+        if not isinstance(before.channel, type(None)):
             await before.channel.send(
                 f"<:left:1208779447440777226> **{member_real_name}** "
                 f"在 <t:{int(time.time())}:T> 離開 {after.channel.mention}。",
                 delete_after=43200)
-        if after.channel is not None:
+        if not isinstance(after.channel, type(None)):
             await after.channel.send(
                 f"<:join:1208779348438683668> **{member_real_name}** "
                 f"在 <t:{int(time.time())}:T> 加入 {after.channel.mention}。",
