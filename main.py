@@ -323,6 +323,9 @@ async def member_list_bad_guys(ctx):
             bad_guys.append({"name": member_obj.get_real_name(), "points": member_obj.get_warning_points()})
     bad_guys.sort(key=lambda x: x["points"], reverse=True)
     for bad_guy in bad_guys:
+        medals = ("🥇", "🥈", "🥉")
+        if bad_guys.index(bad_guy) <= 2:
+            bad_guy["name"] = medals[bad_guys.index(bad_guy)] + " " + bad_guy["name"]
         embed.add_field(name=bad_guy["name"], value=f"`{bad_guy['points']}` 點", inline=False)
     if len(embed.fields) == 0:
         embed.add_field(name="(沒有遭記點隊員)", value="所有人目前皆無點數！", inline=False)
