@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import datetime
+import logging
 from string import hexdigits
 from random import choice
 
@@ -48,6 +49,7 @@ class User:
 
     def get_raw_info(self) -> dict:
         file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
+        logging.debug(f"Reading {file}")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 user_info = json.loads(f.read())
@@ -64,6 +66,7 @@ class User:
 
     def write_raw_info(self, data):
         file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
+        logging.debug(f"Writing {file}")
         with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
