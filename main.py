@@ -981,5 +981,5 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                 delete_after=43200)
 
 
-bot.load_extensions("cogs.reminder", "cogs.verification")
+bot.load_extensions("cogs.reminder", "cogs.verification", "cogs.backup_sys")
 bot.run(TOKEN)

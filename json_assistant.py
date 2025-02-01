@@ -11,7 +11,15 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class User:
-    def __init__(self, user_id: int):
+    INIT_DATA = {"real_name": None,
+                 "total_meeting_time": 0,
+                 "jobs": [],
+                 "warning_points": 0.0,
+                 "warning_history":
+                     [["time", "reason", "points", "note"]],
+                 }
+
+    def __init__(self, user_id: int | str):
         self.user_id = user_id
 
     # @staticmethod
@@ -55,14 +63,7 @@ class User:
                 user_info = json.loads(f.read())
                 return user_info
         else:
-            empty_data = {"real_name": None,
-                          "total_meeting_time": 0,
-                          "jobs": [],
-                          "warning_points": 0.0,
-                          "warning_history":
-                              [["time", "reason", "points", "note"]],
-                          }
-            return empty_data
+            return self.INIT_DATA
 
     def write_raw_info(self, data):
         file = os.path.join(base_dir, "member_data", str(self.user_id) + ".json")
