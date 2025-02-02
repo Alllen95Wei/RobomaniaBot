@@ -50,12 +50,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                             f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                                 f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                   color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -569,14 +569,17 @@ async def member_get_warning_history_user(ctx, user: discord.Member):
 
 @member_cmd.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
 async def member_get_all_warning_history(ctx):
-    embed = Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
-    for i in json_assistant.User.get_all_warning_history():
-        add_or_subtract = "❌記點" if i[3] > 0 else "✅銷點"
-        if i[4] is None:
-            formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}"
-        else:
-            formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}\n*({i[4]})*"
-        embed.add_field(name=f"{i[1]}", value=formatted_history, inline=False)
+    embed = Embed(title="此指令目前維護中",
+                  description="此指令由於存在問題，目前停用中。\n如要查詢目前有被記點的成員，請使用 `/member 查詢記點人員` 。",
+                  color=error_color)
+    # embed = Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
+    # for i in json_assistant.User.get_all_warning_history():
+    #     add_or_subtract = "❌記點" if i[3] > 0 else "✅銷點"
+    #     if i[4] is None:
+    #         formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}"
+    #     else:
+    #         formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}\n*({i[4]})*"
+    #     embed.add_field(name=f"{i[1]}", value=formatted_history, inline=False)
     await ctx.respond(embed=embed)
 
 
@@ -651,7 +654,7 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
             embed = Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
             embed = Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                  f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                                                    f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
                           color=error_color)
         else:
             absent_status = meeting_obj.get_absent_members()
@@ -784,10 +787,10 @@ async def send_message_to_leader(ctx,
     embed = Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+                                                            "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
     embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+                                                        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                                        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
     await ctx.respond(embed=embed, ephemeral=True)
 
 
@@ -880,9 +883,9 @@ async def about(ctx,
     embed = Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(name="程式碼與授權", value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-                                         "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-                                         "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
-                                         "查看。",
+                                               "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+                                               "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
+                                               "查看。",
                     inline=True)
     embed.add_field(name="聯絡", value="如果有任何技術問題及建議，請聯絡<@657519721138094080>。", inline=True)
     repo = git.Repo(search_parent_directories=True)
