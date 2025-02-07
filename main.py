@@ -968,6 +968,8 @@ async def on_message(message):
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+    if member.bot:
+        return
     if before.channel is None or after.channel is None or before.channel.id != after.channel.id:
         member_real_name = json_assistant.User(member.id).get_real_name()
         if member_real_name is None:
