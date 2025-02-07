@@ -867,6 +867,22 @@ async def reply_to_leader_mail(ctx,
 #     await ctx.respond(embed=embed)
 
 
+@bot.slash_command(name="clear", description="清除目前頻道中的訊息。")
+@commands.has_role(1114205838144454807)
+async def clear_messages(ctx: discord.ApplicationContext,
+                         count: Option(int, name="刪除訊息數", description="要刪除的訊息數量", min_value=1,
+                                       max_value=50)):
+    channel = ctx.channel
+    channel: discord.TextChannel
+    try:
+        await channel.purge(limit=count)
+        embed = Embed(title="已清除訊息", description=f"已成功清除 {channel.mention} 中的 `{count}` 則訊息。", color=default_color)
+    except Exception as e:
+        embed = Embed(title="錯誤", description="發生未知錯誤。", color=error_color)
+        embed.add_field(name="錯誤訊息", value="```" + str(e) + "```", inline=False)
+    await ctx.respond(embed=embed)
+
+
 @bot.slash_command(name="debug", description="(開發者專用)除錯用")
 @commands.is_owner()
 async def debug(ctx):
@@ -968,6 +984,8 @@ async def on_message(message):
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+    if member.bot:
+        return
     if before.channel is None or after.channel is None or before.channel.id != after.channel.id:
         member_real_name = json_assistant.User(member.id).get_real_name()
         if member_real_name is None:
