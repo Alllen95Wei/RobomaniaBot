@@ -11,7 +11,7 @@ def update(pid, os):
 
 def get_update_files():
     subprocess.run(["git", "fetch", "--all"])
-    subprocess.run(['git', 'reset', '--hard', 'origin/master'])
+    subprocess.run(['git', 'reset', '--hard', 'origin/main'])
     subprocess.run(['git', 'pull'])
 
 
