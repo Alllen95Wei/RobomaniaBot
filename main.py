@@ -30,6 +30,7 @@ now_tz = zoneinfo.ZoneInfo("Asia/Taipei")
 default_color = 0x012a5e
 error_color = 0xF1411C
 real_logger = logger.CreateLogger()
+大會_URL = "https://discord.com/channels/1114203090950836284/1114209308910026792"  # noqa
 # 載入TOKEN
 load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
 TOKEN = str(os.getenv("TOKEN"))
@@ -97,7 +98,7 @@ class GetEventInfo(discord.ui.Modal):
                             meeting_obj.get_link(),
                             meeting_obj.get_meeting_record_link()]
         else:
-            prefill_data = ["", "", "", "https://discord.com/channels/1114203090950836284/1114209308910026792", ""]
+            prefill_data = ["", "", "", 大會_URL, ""]
 
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="會議標題", value=prefill_data[0],
                                            required=True))
@@ -787,10 +788,10 @@ async def send_message_to_leader(ctx,
     embed = Embed(title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color)
     embed.add_field(name="訊息內容", value=訊息, inline=False)
     embed.add_field(name="此訊息會被其他成員看到嗎？", value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-                                                            "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
+                                                "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。")
     embed.add_field(name="隊長會回覆我的訊息嗎？", value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-                                                        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-                                                        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
+                                              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+                                              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)")
     await ctx.respond(embed=embed, ephemeral=True)
 
 
@@ -899,9 +900,9 @@ async def about(ctx,
     embed = Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(name="程式碼與授權", value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-                                               "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-                                               "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
-                                               "查看。",
+                                         "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+                                         "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
+                                         "查看。",
                     inline=True)
     embed.add_field(name="聯絡", value="如果有任何技術問題及建議，請聯絡<@657519721138094080>。", inline=True)
     repo = git.Repo(search_parent_directories=True)
