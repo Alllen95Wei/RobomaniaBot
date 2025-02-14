@@ -18,6 +18,7 @@ import json_assistant
 import detect_pc_status
 import update as upd
 import logger
+from cogs.player import Player
 
 # import arduino_reader
 
@@ -51,12 +52,12 @@ async def check_meeting():
                     real_logger.info(f"會議 {meeting_id} 已經開始！")
                     meeting_obj.set_started(True)
                     embed = Embed(title="會議開始！", description=f"會議**「{meeting_obj}」**已經在"
-                                                                 f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                                                             f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                                   color=default_color)
                     if meeting_obj.get_description() != "":
                         embed.add_field(name="簡介", value=meeting_obj.get_description(), inline=False)
                     embed.add_field(name="主持人", value=f"<@{meeting_obj.get_host()}> "
-                                                         f"({bot.get_user(meeting_obj.get_host())})", inline=False)
+                                                      f"({bot.get_user(meeting_obj.get_host())})", inline=False)
                     embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
                     if meeting_obj.get_absent_members():
                         absent_members = ""
@@ -1003,5 +1004,5 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                 delete_after=43200)
 
 
-bot.load_extensions("cogs.reminder", "cogs.verification", "cogs.backup_sys", "cogs.player")
+bot.load_extensions("cogs.reminder", "cogs.verification", "cogs.backup_sys")
 bot.run(TOKEN)
