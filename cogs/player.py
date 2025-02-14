@@ -20,10 +20,12 @@ class Player:
         self.bot = bot
 
         self.voice_client = None
-        self.volume: float = 0.2
+        self.volume: float = 0.3
         self.voice_client: discord.VoiceClient
 
-    async def join(self, voice_channel: discord.VoiceChannel) -> tuple[bool, discord.VoiceChannel]:
+    async def join(
+        self, voice_channel: discord.VoiceChannel
+    ) -> tuple[bool, discord.VoiceChannel]:
         if self.voice_client is None:
             self.voice_client = await voice_channel.connect()
             await voice_channel.guild.change_voice_state(
@@ -33,7 +35,7 @@ class Player:
         else:
             return False, self.voice_client.channel
 
-    async def leave(self):
+    async def leave(self) -> tuple[bool, discord.VoiceChannel | None]:
         if self.voice_client is not None:
             channel = self.voice_client.channel
             await self.stop()
@@ -42,7 +44,7 @@ class Player:
             return True, channel
         return False, None
 
-    async def play(self, file_path: str):
+    async def play(self, file_path: str) -> bool:
         if self.voice_client is not None:
             self.voice_client: discord.VoiceClient
             if self.voice_client.is_playing():
@@ -56,7 +58,7 @@ class Player:
             return True
         return False
 
-    async def pause(self):
+    async def pause(self) -> tuple[bool, str]:
         if self.voice_client is not None and self.voice_client.is_playing():
             self.voice_client.pause()
             return True, ""
@@ -65,7 +67,7 @@ class Player:
         else:
             return False, "Not playing"
 
-    async def resume(self):
+    async def resume(self) -> tuple[bool, str]:
         if self.voice_client is not None and self.voice_client.is_paused():
             self.voice_client.resume()
             return True, ""
@@ -74,14 +76,17 @@ class Player:
         else:
             return False, "Not paused"
 
-    async def stop(self):
-        if self.voice_client is not None:
+    async def stop(self) -> tuple[bool, str]:
+        if self.voice_client is not None and self.voice_client.is_playing():
             self.voice_client.stop()
             return True, ""
-        return False, "Not connected to a voice channel"
+        if self.voice_client is None:
+            return False, "Not connected to a voice channel"
+        else:
+            return False, "Not playing"
 
-    async def set_volume(self, volume: float):
-        previous_volume = self.volume
+    async def set_volume(self, volume: float) -> tuple[bool, int, str]:
+        previous_volume = int(self.volume)
         self.volume = volume
         if self.voice_client is not None and self.voice_client.source is not None:
             self.voice_client.source.volume = volume
