@@ -876,6 +876,7 @@ async def clear_messages(ctx: discord.ApplicationContext,
                                        max_value=50)):
     channel = ctx.channel
     channel: discord.TextChannel
+    await ctx.defer()
     try:
         await channel.purge(limit=count)
         embed = Embed(title="已清除訊息", description=f"已成功清除 {channel.mention} 中的 `{count}` 則訊息。", color=default_color)
