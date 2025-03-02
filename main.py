@@ -182,7 +182,7 @@ class Absent(discord.ui.Modal):
     def __init__(self, meeting_id: str) -> None:
         super().__init__(title="請假", timeout=None)
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, label="請假理由",
-                                           placeholder="請輸入合理的請假理由。打「家裡有事」的，好自為之(？", required=True))
+                                           placeholder="請輸入合理的請假理由，而不是「有事」", required=True))
         self.meeting_id = meeting_id
 
     async def callback(self, interaction: discord.Interaction) -> None:
