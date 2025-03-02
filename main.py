@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from platform import system
 import re
 import git
+import logging
+from typing import Literal
 
 import json_assistant
 import detect_pc_status
@@ -998,11 +1000,45 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                 f"<:left:1208779447440777226> **{member_real_name}** "
                 f"在 <t:{int(time.time())}:T> 離開 {before.channel.mention}。",
                 delete_after=43200)
+            log_vc_activity("leave", member, before.channel)
         if not isinstance(after.channel, type(None)):
             await after.channel.send(
                 f"<:join:1208779348438683668> **{member_real_name}** "
                 f"在 <t:{int(time.time())}:T> 加入 {after.channel.mention}。",
                 delete_after=43200)
+            log_vc_activity("join", member, after.channel)
+
+VC_LOGGER = logging.getLogger("VC")
+
+
+def log_vc_activity(
+        join_or_leave: Literal["join", "leave"],
+        user: discord.User | discord.Member,
+        channel: discord.VoiceChannel
+):
+    log_path = os.path.join(base_dir, "logs",
+                            f"VC {datetime.datetime.now(tz=now_tz).strftime('%Y.%m.%d')}.log")
+    if not os.path.exists(log_path):
+        with open(log_path, "w"):
+            pass
+    original_handler: logging.FileHandler
+    try:
+        original_handler = VC_LOGGER.handlers[0]
+    except IndexError:
+        original_handler = logging.FileHandler("logs/VC.log")
+    if original_handler.baseFilename != log_path:
+        formatter = logging.Formatter(
+            fmt="[%(asctime)s] %(levelname)s %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S")
+        log_path = os.path.join(base_dir, "logs",
+                                f"VC {datetime.datetime.now(tz=now_tz).strftime('%Y.%m.%d')}.log")
+        handler = logging.FileHandler(log_path, encoding="utf-8")
+        handler.setFormatter(formatter)
+        VC_LOGGER.addHandler(handler)
+        VC_LOGGER.removeHandler(original_handler)
+    join_or_leave = "加入" if join_or_leave == "join" else "離開"
+    message = user.name + " " + join_or_leave + "了 " + channel.name
+    VC_LOGGER.info(message)
 
 
 bot.load_extensions("cogs.reminder", "cogs.verification", "cogs.backup_sys")
