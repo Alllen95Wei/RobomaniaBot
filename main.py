@@ -338,6 +338,23 @@ async def member_list_bad_guys(ctx):
     await ctx.respond(embed=embed)
 
 
+@member_cmd.command(name="以真名查詢id", description="使用真名查詢使用者的 Discord ID，可用於讀取已離開成員的資料。")
+async def member_search_by_real_name(ctx, real_name: Option(str, name="真名", description="成員的真名", required=True)):
+    members = json_assistant.User.get_all_user_id()
+    results = []
+    for m in members:
+        member_obj = json_assistant.User(m)
+        if member_obj.get_real_name() == real_name:
+            results.append(m)
+    if len(results) != 0:
+        embed = Embed(title="搜尋結果", description=f"真名為 `{real_name}` 的資料共有 {len(results)} 筆：", color=default_color)
+        for result in results:
+            embed.add_field(name=result, value="", inline=False)
+    else:
+        embed = Embed(title="搜尋結果", description=f"沒有任何真名為 `{real_name}` 的資料。", color=error_color)
+    await ctx.respond(embed=embed)
+
+
 @bot.user_command(name="查看此隊員的資訊")
 async def member_info_user(ctx, user: discord.Member):
     await member_info(ctx, user)
