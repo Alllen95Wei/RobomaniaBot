@@ -216,12 +216,28 @@ class GetEventInfoInView(discord.ui.View):
 
 class AbsentInView(discord.ui.View):
     def __init__(self, meeting_id: str):
-        super().__init__(timeout=None)
         self.meeting_id = meeting_id
+        super().__init__(timeout=self.get_button_life())
+
+    def get_button_life(self) -> float | None:
+        meeting_obj = json_assistant.Meeting(self.meeting_id)
+        absent_deadline = meeting_obj.get_start_time() - 60 * 10
+        button_life = absent_deadline - time.time()
+        print(button_life)
+        return button_life if button_life > 0 else 0
 
     @discord.ui.button(label="點此開啟請假視窗", style=discord.ButtonStyle.red, emoji="🙋")
     async def button_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(Absent(self.meeting_id))
+        meeting_obj = json_assistant.Meeting(self.meeting_id)
+        absent_deadline = meeting_obj.get_start_time() - 60*10
+        if time.time() > absent_deadline:
+            embed = Embed(title="錯誤：自動請假期限已到", description="請假需在會議 10 分鐘前處理完畢。\n"
+                                                           f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
+                          color=error_color)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.response.send_modal(Absent(self.meeting_id))
+        self.timeout = self.get_button_life()
 
 
 class RespondLeaderMailboxInView(discord.ui.View):
@@ -674,10 +690,10 @@ async def absence_meeting(ctx, 會議id: Option(str, "不會出席的會議ID"),
     if 會議id in id_list:
         meeting_obj = json_assistant.Meeting(會議id)
         if meeting_obj.get_started():
-            embed = Embed(title="錯誤", description="此會議已經開始，無法請假！", color=error_color)
+            embed = Embed(title="錯誤：會議已開始", description="此會議已經開始，無法請假！", color=error_color)
         elif meeting_obj.get_start_time() - time.time() < 600:
-            embed = Embed(title="錯誤", description="請假需在會議10分鐘前處理完畢。\n"
-                                                    f"此會議即將在<t:{int(meeting_obj.get_start_time())}:R>開始！",
+            embed = Embed(title="錯誤：自動請假期限已到", description="請假需在會議 10 分鐘前處理完畢。\n"
+                                                           f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
                           color=error_color)
         else:
             absent_status = meeting_obj.get_absent_members()
