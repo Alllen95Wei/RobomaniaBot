@@ -316,10 +316,10 @@ async def member_info(ctx,
     await ctx.respond(embed=embed)
 
 
-@member_cmd.command(name="查詢記點人員", description="列出所有點數不為0的隊員。")
+@member_cmd.command(name="查詢記點人員", description="列出點數不為 0 的隊員。")
 async def member_list_bad_guys(ctx):
     members = json_assistant.User.get_all_user_id()
-    embed = Embed(title="遭記點隊員清單", description="以下為點數不為0的所有隊員：", color=default_color)
+    embed = Embed(title="遭記點隊員清單", description="以下為點數不為 0 的前 25 名隊員：", color=default_color)
     bad_guys: list[dict[str, str | float | int]] = []
     for m in members:
         member_obj = json_assistant.User(m)
