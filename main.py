@@ -326,6 +326,8 @@ async def member_list_bad_guys(ctx):
         if member_obj.get_warning_points() != 0:
             bad_guys.append({"name": member_obj.get_real_name(), "points": member_obj.get_warning_points()})
     bad_guys.sort(key=lambda x: x["points"], reverse=True)
+    if len(bad_guys) > 25:
+        bad_guys = bad_guys[:25]
     for bad_guy in bad_guys:
         medals = ("🥇", "🥈", "🥉")
         if bad_guys.index(bad_guy) <= 2:
