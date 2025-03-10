@@ -917,10 +917,11 @@ async def clear_messages(ctx: discord.ApplicationContext,
     try:
         await channel.purge(limit=count)
         embed = Embed(title="已清除訊息", description=f"已成功清除 {channel.mention} 中的 `{count}` 則訊息。", color=default_color)
+        await ctx.channel.send(embed=embed, delete_after=5)
     except Exception as e:
         embed = Embed(title="錯誤", description="發生未知錯誤。", color=error_color)
         embed.add_field(name="錯誤訊息", value="```" + str(e) + "```", inline=False)
-    await ctx.respond(embed=embed)
+        await ctx.respond(embed=embed)
 
 
 @bot.slash_command(name="debug", description="(開發者專用)除錯用")
