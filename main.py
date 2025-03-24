@@ -1081,5 +1081,6 @@ bot.load_extensions(
     "cogs.member",
     "cogs.reminder",
     "cogs.new_verification",
-    "cogs.backup_sys")
+    "cogs.backup_sys"
+)
 bot.run(TOKEN)
