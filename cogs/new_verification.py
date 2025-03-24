@@ -30,7 +30,7 @@ class NewVerification(commands.Cog):
 
             self.add_item(
                 Button(
-                    label="使用學校 Google 帳戶登入",
+                    label="使用中科實中 Google 帳戶登入",
                     style=ButtonStyle.url,
                     url="https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?"
                         "scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20"
@@ -38,7 +38,7 @@ class NewVerification(commands.Cog):
                         "response_type=token&redirect_uri=https%3A%2F%2Falllen95wei.github.io%2F&"
                         "client_id=204070935721-sbjql09rsmu67a1h820m9a49og1g4kck.apps.googleusercontent.com&"
                         "service=lso&o2v=2&ddm=0&flowName=GeneralOAuthFlow",
-                    emoji="🔜",
+                    emoji="🔐",
                 )
             )
 
@@ -241,8 +241,17 @@ class NewVerification(commands.Cog):
             logging.info(f"新成員加入：{member.name}")
             embed = Embed(
                 title=f"歡迎加入 {guild_joined.name} ！",
-                description="在正式加入此伺服器前，請告訴我們你的**真名**，以便我們授予你適當的權限！",
+                description="在正式加入此伺服器前，請先完成「自動身分驗證」，以便我們授予你適當的權限！\n"
+                            "1. 點擊下方「🔐 使用中科實中 Google 帳戶登入」按鈕，並使用中科實中的 Google 帳戶登入\n"
+                            "2. 點擊複製按鈕，取得你的 Refresh Token\n"
+                            "3. 點擊下方「📝 提交你的 Refresh Token」按鈕，並在開啟的視窗內貼上 Refresh Token 後提交",
                 color=default_color,
+            )
+            embed.add_field(
+                name="為何登入後顯示「已封鎖存取權」錯誤？",
+                value="為了資訊安全，此系統目前僅開放「中科實中網域 (結尾為 `@nehs.tc.edu.tw` )」的 Google 帳戶使用。\n"
+                      "如果你是中科實中的學生，請切換至學校帳戶並重試；外校學生請直接連絡伺服器管理員。",
+                inline=False,
             )
             try:
                 await member.send(
@@ -251,7 +260,7 @@ class NewVerification(commands.Cog):
                 logging.info("   ⌊已成功傳送驗證提示")
             except discord.errors.HTTPException as error:
                 if error.code == 50007:
-                    logging.warning("   ⌊無法傳送驗證提示(私人訊息關閉)")
+                    logging.warning("   ⌊無法傳送驗證提示 (私人訊息關閉)")
                     await guild_joined.system_channel.send(
                         f"{member.mention}，由於你的私人訊息已關閉，無法透過機器人進行快速審核。\n"
                         f"請私訊管理員你的**真名**，以便我們授予你適當的身分組！"
