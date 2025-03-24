@@ -275,9 +275,6 @@ async def on_application_command(ctx):
         real_logger.info(f"{ctx.author} 執行了斜線指令 \"{ctx.command.parent.name} {ctx.command.name}\"")
 
 
-member_cmd = bot.create_group(name="member", description="隊員資訊相關指令。")
-
-
 @bot.slash_command(name="ping", description="查看機器人延遲。")
 async def ping(ctx):
     embed = Embed(title="PONG!✨", color=default_color)
@@ -309,6 +306,9 @@ async def on_application_command_error(ctx, error):
         embed = Embed(title="錯誤", description="發生了一個錯誤，已經通知開發者。", color=error_color)
         await ctx.respond(embed=embed, ephemeral=True)
         raise error
+
+
+# member_cmd = bot.create_group(name="member", description="隊員資訊相關指令。")
 
 
 # @member_cmd.command(name="查詢", description="查看隊員資訊。")
@@ -580,46 +580,46 @@ async def member_change_name_user(ctx, user: discord.Member):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-@member_cmd.command(name="個人記點紀錄", description="查詢記點紀錄。")
-async def member_get_warning_history(ctx,
-                                     隊員: Option(discord.Member, "隊員", required=True)):  # noqa
-    member_data = json_assistant.User(隊員.id)
-    embed = Embed(title="記點紀錄", description=f"{隊員.mention} 的記點紀錄", color=default_color)
-    embed.add_field(name="目前點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
-    raw_history = member_data.get_raw_warning_history()
-    if len(raw_history) == 0:
-        embed.add_field(name="(無紀錄)", value="表現優良！", inline=False)
-    else:
-        for i in raw_history:
-            add_or_subtract = "❌記點" if i[2] > 0 else "✅銷點"
-            if i[3] is None:
-                formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}"
-            else:
-                formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}\n*({i[3]})*"
-            embed.add_field(name=i[0], value=formatted_history, inline=False)
-    embed.set_thumbnail(url=隊員.display_avatar)
-    await ctx.respond(embed=embed)
+# @member_cmd.command(name="個人記點紀錄", description="查詢記點紀錄。")
+# async def member_get_warning_history(ctx,
+#                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
+#     member_data = json_assistant.User(隊員.id)
+#     embed = Embed(title="記點紀錄", description=f"{隊員.mention} 的記點紀錄", color=default_color)
+#     embed.add_field(name="目前點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
+#     raw_history = member_data.get_raw_warning_history()
+#     if len(raw_history) == 0:
+#         embed.add_field(name="(無紀錄)", value="表現優良！", inline=False)
+#     else:
+#         for i in raw_history:
+#             add_or_subtract = "❌記點" if i[2] > 0 else "✅銷點"
+#             if i[3] is None:
+#                 formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}"
+#             else:
+#                 formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}\n*({i[3]})*"
+#             embed.add_field(name=i[0], value=formatted_history, inline=False)
+#     embed.set_thumbnail(url=隊員.display_avatar)
+#     await ctx.respond(embed=embed)
 
 
-@bot.user_command(name="查看此隊員的記點紀錄")
-async def member_get_warning_history_user(ctx, user: discord.Member):
-    await member_get_warning_history(ctx, user)
+# @bot.user_command(name="查看此隊員的記點紀錄")
+# async def member_get_warning_history_user(ctx, user: discord.Member):
+#     await member_get_warning_history(ctx, user)
 
 
-@member_cmd.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
-async def member_get_all_warning_history(ctx):
-    embed = Embed(title="此指令目前維護中",
-                  description="此指令由於存在問題，目前停用中。\n如要查詢目前有被記點的成員，請使用 `/member 查詢記點人員` 。",
-                  color=error_color)
-    # embed = Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
-    # for i in json_assistant.User.get_all_warning_history():
-    #     add_or_subtract = "❌記點" if i[3] > 0 else "✅銷點"
-    #     if i[4] is None:
-    #         formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}"
-    #     else:
-    #         formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}\n*({i[4]})*"
-    #     embed.add_field(name=f"{i[1]}", value=formatted_history, inline=False)
-    await ctx.respond(embed=embed)
+# @member_cmd.command(name="全員記點記錄", description="查詢所有人的記、銷點紀錄。")
+# async def member_get_all_warning_history(ctx):
+#     embed = Embed(title="此指令目前維護中",
+#                   description="此指令由於存在問題，目前停用中。\n如要查詢目前有被記點的成員，請使用 `/member 查詢記點人員` 。",
+#                   color=error_color)
+#     embed = Embed(title="記點紀錄", description="全隊所有記、銷點紀錄", color=default_color)
+#     for i in json_assistant.User.get_all_warning_history():
+#         add_or_subtract = "❌記點" if i[3] > 0 else "✅銷點"
+#         if i[4] is None:
+#             formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}"
+#         else:
+#             formatted_history = f"{bot.get_user(i[0]).mention}{add_or_subtract} {abs(i[3])} 點：{i[2]}\n*({i[4]})*"
+#         embed.add_field(name=f"{i[1]}", value=formatted_history, inline=False)
+#     await ctx.respond(embed=embed)
 
 
 meeting = bot.create_group(name="meeting", description="會議相關指令。")

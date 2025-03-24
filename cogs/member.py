@@ -81,9 +81,33 @@ class Member(commands.Cog):
             embed = Embed(title="搜尋結果", description=f"沒有任何真名為 `{real_name}` 的資料。", color=error_color)
         await ctx.respond(embed=embed)
 
+    @MEMBER_CMD.command(name="個人記點紀錄", description="查詢記點紀錄。")
+    async def member_get_warning_history(self, ctx,
+                                         隊員: Option(discord.Member, "隊員", required=True)):  # noqa
+        member_data = json_assistant.User(隊員.id)
+        embed = Embed(title="記點紀錄", description=f"{隊員.mention} 的記點紀錄", color=default_color)
+        embed.add_field(name="目前點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
+        raw_history = member_data.get_raw_warning_history()
+        if len(raw_history) == 0:
+            embed.add_field(name="(無紀錄)", value="表現優良！", inline=False)
+        else:
+            for i in raw_history:
+                add_or_subtract = "❌記點" if i[2] > 0 else "✅銷點"
+                if i[3] is None:
+                    formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}"
+                else:
+                    formatted_history = f"{add_or_subtract} {abs(i[2])} 點：{i[1]}\n*({i[3]})*"
+                embed.add_field(name=i[0], value=formatted_history, inline=False)
+        embed.set_thumbnail(url=隊員.display_avatar)
+        await ctx.respond(embed=embed)
+
     @discord.user_command(name="查看此隊員的資訊")
     async def member_info_user(self, ctx, user: discord.Member):
         await self.member_info(ctx, user)
+
+    @discord.user_command(name="查看此隊員的記點紀錄")
+    async def member_get_warning_history_user(self, ctx, user: discord.Member):
+        await self.member_get_warning_history(ctx, user)
 
 
 def setup(bot: commands.Bot):
