@@ -262,6 +262,7 @@ class NewVerification(commands.Cog):
     @discord.slash_command(name="執行新版驗證", description="執行新版的身分驗證，並使用 Google 帳戶登入取得資料")
     async def new_verify(self, ctx: discord.ApplicationContext):
         await self.on_member_join(ctx.user)
+        await ctx.respond(content="已透過私人訊息傳送驗證通知。", ephemeral=True)
 
 
 def setup(bot):
