@@ -311,69 +311,69 @@ async def on_application_command_error(ctx, error):
         raise error
 
 
-@member_cmd.command(name="查詢", description="查看隊員資訊。")
-async def member_info(ctx,
-                      隊員: Option(discord.Member, "隊員", required=False) = None):  # noqa
-    if 隊員 is None:
-        隊員 = ctx.author  # noqa
-    member_data = json_assistant.User(隊員.id)
-    jobs_str = ""
-    if len(member_data.get_jobs()) != 0:
-        for job in member_data.get_jobs():
-            jobs_str += f"* {job}\n"
-    else:
-        jobs_str = "(無)"
-    embed = Embed(title="隊員資訊", description=f"{隊員.mention} 的資訊", color=default_color)
-    embed.add_field(name="真實姓名", value=member_data.get_real_name(), inline=False)
-    embed.add_field(name="職務", value=jobs_str, inline=False)
-    # embed.add_field(name="總計會議時數", value=member_data.get_total_meeting_time(), inline=False)
-    embed.add_field(name="警告點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
-    embed.set_thumbnail(url=隊員.display_avatar)
-    await ctx.respond(embed=embed)
+# @member_cmd.command(name="查詢", description="查看隊員資訊。")
+# async def member_info(ctx,
+#                       隊員: Option(discord.Member, "隊員", required=False) = None):  # noqa
+#     if 隊員 is None:
+#         隊員 = ctx.author  # noqa
+#     member_data = json_assistant.User(隊員.id)
+#     jobs_str = ""
+#     if len(member_data.get_jobs()) != 0:
+#         for job in member_data.get_jobs():
+#             jobs_str += f"* {job}\n"
+#     else:
+#         jobs_str = "(無)"
+#     embed = Embed(title="隊員資訊", description=f"{隊員.mention} 的資訊", color=default_color)
+#     embed.add_field(name="真實姓名", value=member_data.get_real_name(), inline=False)
+#     embed.add_field(name="職務", value=jobs_str, inline=False)
+#     # embed.add_field(name="總計會議時數", value=member_data.get_total_meeting_time(), inline=False)
+#     embed.add_field(name="警告點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
+#     embed.set_thumbnail(url=隊員.display_avatar)
+#     await ctx.respond(embed=embed)
 
 
-@member_cmd.command(name="查詢記點人員", description="列出點數不為 0 的隊員。")
-async def member_list_bad_guys(ctx):
-    members = json_assistant.User.get_all_user_id()
-    embed = Embed(title="遭記點隊員清單", description="以下為點數不為 0 的前 25 名隊員：", color=default_color)
-    bad_guys: list[dict[str, str | float | int]] = []
-    for m in members:
-        member_obj = json_assistant.User(m)
-        if member_obj.get_warning_points() != 0:
-            bad_guys.append({"name": member_obj.get_real_name(), "points": member_obj.get_warning_points()})
-    bad_guys.sort(key=lambda x: x["points"], reverse=True)
-    if len(bad_guys) > 25:
-        bad_guys = bad_guys[:25]
-    for bad_guy in bad_guys:
-        medals = ("🥇", "🥈", "🥉")
-        if bad_guys.index(bad_guy) <= 2:
-            bad_guy["name"] = medals[bad_guys.index(bad_guy)] + " " + bad_guy["name"]
-        embed.add_field(name=bad_guy["name"], value=f"`{bad_guy['points']}` 點", inline=False)
-    if len(embed.fields) == 0:
-        embed.add_field(name="(沒有遭記點隊員)", value="所有人目前皆無點數！", inline=False)
-    await ctx.respond(embed=embed)
+# @member_cmd.command(name="查詢記點人員", description="列出點數不為 0 的隊員。")
+# async def member_list_bad_guys(ctx):
+#     members = json_assistant.User.get_all_user_id()
+#     embed = Embed(title="遭記點隊員清單", description="以下為點數不為 0 的前 25 名隊員：", color=default_color)
+#     bad_guys: list[dict[str, str | float | int]] = []
+#     for m in members:
+#         member_obj = json_assistant.User(m)
+#         if member_obj.get_warning_points() != 0:
+#             bad_guys.append({"name": member_obj.get_real_name(), "points": member_obj.get_warning_points()})
+#     bad_guys.sort(key=lambda x: x["points"], reverse=True)
+#     if len(bad_guys) > 25:
+#         bad_guys = bad_guys[:25]
+#     for bad_guy in bad_guys:
+#         medals = ("🥇", "🥈", "🥉")
+#         if bad_guys.index(bad_guy) <= 2:
+#             bad_guy["name"] = medals[bad_guys.index(bad_guy)] + " " + bad_guy["name"]
+#         embed.add_field(name=bad_guy["name"], value=f"`{bad_guy['points']}` 點", inline=False)
+#     if len(embed.fields) == 0:
+#         embed.add_field(name="(沒有遭記點隊員)", value="所有人目前皆無點數！", inline=False)
+#     await ctx.respond(embed=embed)
 
 
-@member_cmd.command(name="以真名查詢id", description="使用真名查詢使用者的 Discord ID，可用於讀取已離開成員的資料。")
-async def member_search_by_real_name(ctx, real_name: Option(str, name="真名", description="成員的真名", required=True)):
-    members = json_assistant.User.get_all_user_id()
-    results = []
-    for m in members:
-        member_obj = json_assistant.User(m)
-        if member_obj.get_real_name() == real_name:
-            results.append(m)
-    if len(results) != 0:
-        embed = Embed(title="搜尋結果", description=f"真名為 `{real_name}` 的資料共有 {len(results)} 筆：", color=default_color)
-        for result in results:
-            embed.add_field(name=result, value="", inline=False)
-    else:
-        embed = Embed(title="搜尋結果", description=f"沒有任何真名為 `{real_name}` 的資料。", color=error_color)
-    await ctx.respond(embed=embed)
+# @member_cmd.command(name="以真名查詢id", description="使用真名查詢使用者的 Discord ID，可用於讀取已離開成員的資料。")
+# async def member_search_by_real_name(ctx, real_name: Option(str, name="真名", description="成員的真名", required=True)):
+#     members = json_assistant.User.get_all_user_id()
+#     results = []
+#     for m in members:
+#         member_obj = json_assistant.User(m)
+#         if member_obj.get_real_name() == real_name:
+#             results.append(m)
+#     if len(results) != 0:
+#         embed = Embed(title="搜尋結果", description=f"真名為 `{real_name}` 的資料共有 {len(results)} 筆：", color=default_color)
+#         for result in results:
+#             embed.add_field(name=result, value="", inline=False)
+#     else:
+#         embed = Embed(title="搜尋結果", description=f"沒有任何真名為 `{real_name}` 的資料。", color=error_color)
+#     await ctx.respond(embed=embed)
 
 
-@bot.user_command(name="查看此隊員的資訊")
-async def member_info_user(ctx, user: discord.Member):
-    await member_info(ctx, user)
+# @bot.user_command(name="查看此隊員的資訊")
+# async def member_info_user(ctx, user: discord.Member):
+#     await member_info(ctx, user)
 
 
 member_info_manage = bot.create_group(name="manage", description="隊員資訊管理。")
@@ -1077,5 +1077,9 @@ def log_vc_activity(
     VC_LOGGER.info(message)
 
 
-bot.load_extensions("cogs.reminder", "cogs.verification", "cogs.backup_sys")
+bot.load_extensions(
+    "cogs.member",
+    "cogs.reminder",
+    "cogs.new_verification",
+    "cogs.backup_sys")
 bot.run(TOKEN)
