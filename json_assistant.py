@@ -17,6 +17,7 @@ class User:
                  "warning_points": 0.0,
                  "warning_history":
                      [["time", "reason", "points", "note"]],
+                 "email_address": "",
                  }
 
     def __init__(self, user_id: int | str):
@@ -159,6 +160,15 @@ class User:
         history.append([user_id, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), reason, points, note])
         with open(file, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2, ensure_ascii=False)
+
+    def set_email_address(self, email_address: str):
+        user_info = self.get_raw_info()
+        user_info["email_address"] = email_address
+        self.write_raw_info(user_info)
+
+    def get_email_address(self) -> str | None:
+        user_info = self.get_raw_info()
+        return user_info.get("email_address", None)
 
 
 class Meeting:
@@ -678,3 +688,24 @@ class Reminder:
     def delete(self):
         file = os.path.join(base_dir, "reminder_data", str(self.reminder_id) + ".json")
         os.remove(file)
+
+
+class WarnPtsRankRecord:
+    INIT_DATA = {"data": []}
+
+    def __init__(self, start_date: datetime.datetime):
+        self.start_date = start_date
+        self.file_path = os.path.join(base_dir, "warning_points_record_data",
+                                      self.start_date.strftime("%Y-%m-%d") + ".json")
+
+    def get_raw_info(self):
+        if os.path.exists(self.file_path):
+            with open(self.file_path, "r", encoding="utf-8") as f:
+                warning_points_record = json.loads(f.read())
+                return warning_points_record
+        else:
+            return self.INIT_DATA
+
+    def write_raw_info(self, data: dict):
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)

@@ -111,7 +111,7 @@ class Verification(commands.Cog):
             )
             await self.member.send(embed=notify_embed)
             self.disable_all_items()
-            embed = Embed(title="已完成審核", description=f"{interaction.user.mention}已確認此審核要求。",
+            embed = Embed(title="已完成審核", description=f"{interaction.user.mention} 已確認 {self.member.mention} 的審核要求。",
                           color=default_color)
             embed.add_field(name="審核結果", value="✅ 通過")
             await interaction.edit_original_response(view=self)
@@ -131,7 +131,7 @@ class Verification(commands.Cog):
             )
             await self.member.send(embed=notify_embed)
             self.disable_all_items()
-            embed = Embed(title="已完成審核", description=f"{interaction.user.mention}已確認此審核要求。",
+            embed = Embed(title="已完成審核", description=f"{interaction.user.mention} 已確認 {self.member.mention} 的審核要求。",
                           color=default_color)
             embed.add_field(name="審核結果", value="❌ 撤回")
             await interaction.edit_original_response(view=self)
