@@ -11,14 +11,14 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class User:
-    INIT_DATA = {"real_name": None,
-                 "total_meeting_time": 0,
-                 "jobs": [],
-                 "warning_points": 0.0,
-                 "warning_history":
-                     [["time", "reason", "points", "note"]],
-                 "email_address": "",
-                 }
+    INIT_DATA = {
+        "real_name": None,
+        "total_meeting_time": 0,
+        "jobs": [],
+        "warning_points": 0.0,
+        "warning_history": [["time", "reason", "points", "note"]],
+        "email_address": "",
+    }
 
     def __init__(self, user_id: int | str):
         self.user_id = user_id
@@ -117,7 +117,13 @@ class User:
         user_info = self.get_raw_info()
         user_info["warning_points"] += points
         user_info["warning_history"].append(
-            [datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), reason, points, note])
+            [
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                reason,
+                points,
+                note,
+            ]
+        )
         self.write_raw_info(user_info)
         self.add_warning_history(self.user_id, points, reason, note)
 
@@ -134,9 +140,13 @@ class User:
             i: list[str | int]
             add_or_subtract = "記點" if i[2] > 0 else "銷點"
             if i[3] is None:
-                formatted_history += f"{i[0]}: {add_or_subtract} {abs(i[2])} 點 ({i[1]})\n"
+                formatted_history += (
+                    f"{i[0]}: {add_or_subtract} {abs(i[2])} 點 ({i[1]})\n"
+                )
             else:
-                formatted_history += f"{i[0]}: {add_or_subtract} {abs(i[2])} 點 ({i[1]}) - {i[3]}\n"
+                formatted_history += (
+                    f"{i[0]}: {add_or_subtract} {abs(i[2])} 點 ({i[1]}) - {i[3]}\n"
+                )
             formatted_history += "\n"
         return formatted_history
 
@@ -150,14 +160,24 @@ class User:
             return []
 
     @staticmethod
-    def add_warning_history(user_id, points: float | int, reason: str, note: str = None):
+    def add_warning_history(
+        user_id, points: float | int, reason: str, note: str = None
+    ):
         file = os.path.join(base_dir, "member_data", "warning_points_history.json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
                 history = json.loads(f.read())
         else:
             history = []
-        history.append([user_id, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), reason, points, note])
+        history.append(
+            [
+                user_id,
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                reason,
+                points,
+                note,
+            ]
+        )
         with open(file, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2, ensure_ascii=False)
 
@@ -211,7 +231,7 @@ class Meeting:
                 "started": False,
                 "notified": False,
                 "meeting_record_link": "",
-                "absent_members": [["id", "reason"]]
+                "absent_requests": {"pending": [], "reviewed": []},
             }
             return empty_data
 
@@ -227,7 +247,12 @@ class Meeting:
     def archive(self):
         file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
-            shutil.move(file, os.path.join(base_dir, "archived", "meeting", str(self.event_id) + ".json"))
+            shutil.move(
+                file,
+                os.path.join(
+                    base_dir, "archived", "meeting", str(self.event_id) + ".json"
+                ),
+            )
         else:
             raise FileNotFoundError("File not found.")
 
@@ -279,27 +304,70 @@ class Meeting:
     def disable_absent(self, disabled: bool):
         meeting_info = self.get_raw_info()
         if disabled:
-            meeting_info["absent_members"] = "disabled"
+            meeting_info["absent_requests"] = "disabled"
         else:
-            meeting_info["absent_members"] = [["id", "reason"]]
+            meeting_info["absent_requests"] = {"pending": [], "reviewed": []}
         self.write_raw_info(meeting_info)
 
-    def get_absent_members(self) -> list | None:
+    def get_absent_requests(self) -> dict[str, list[dict]] | None:
         meeting_info = self.get_raw_info()
-        members = meeting_info["absent_members"]
+        members = meeting_info.get(
+            "absent_requests", {"pending": [], "reviewed": []}
+        )
         if members == "disabled":
-            return
+            return None
         else:
-            members = meeting_info["absent_members"]
-            del members[0]
-            return meeting_info["absent_members"]
+            return members
 
-    def add_absent_member(self, member_id, reason):
+    def add_absent_request(self, member_id, timestamp, reason):
         meeting_info = self.get_raw_info()
-        members = meeting_info["absent_members"]
+        members = meeting_info["absent_requests"]
         if members == "disabled":
-            raise Exception('"absent_members" disabled.')
-        meeting_info["absent_members"].append([member_id, reason])
+            raise Exception('"absent_requests" disabled.')
+        meeting_info["absent_requests"]["pending"].append(
+            {
+                "member": member_id,
+                "time": timestamp,
+                "reason": reason,
+                "result": {
+                    "time": None,
+                    "approved": None,
+                    "reviewer": None,
+                    "response": "",
+                },
+            }
+        )
+        self.write_raw_info(meeting_info)
+
+    def review_absent_request(
+        self,
+        member_id: int,
+        timestamp: int | float,
+        reviewer_id: int,
+        approved: bool = False,
+        response: str = "",
+    ):
+        meeting_info = self.get_raw_info()
+        pending_requests: list[dict] = meeting_info.get(
+            "absent_requests", {"pending": [], "reviewed": []}
+        ).get("pending", [])
+        target_request = None
+        target_index = 0
+        for request in pending_requests:
+            if request["member"] == member_id:
+                target_request = request
+                break
+            target_index += 1
+        if target_request is None:
+            raise Exception(f"Request from {member_id} not found.")
+        target_request["result"] = {
+            "time": timestamp,
+            "approved": approved,
+            "reviewer": reviewer_id,
+            "response": response,
+        }
+        del meeting_info["absent_requests"]["pending"][target_index]
+        meeting_info["absent_requests"]["reviewed"].append(target_request)
         self.write_raw_info(meeting_info)
 
     def get_started(self):
@@ -366,7 +434,7 @@ class Message:
                 "time": "",
                 "content": "",
                 "replied": False,
-                "response": ""
+                "response": "",
             }
             return empty_data
 
@@ -453,13 +521,15 @@ class Order:
                 user_info = json.loads(f.read())
                 return user_info
         else:
-            empty_data = {"title": "",
-                          "description": "",
-                          "menu_link": "",
-                          "end_time": 0,
-                          "current_order": {},
-                          "manager": 0,
-                          "has_closed": False}
+            empty_data = {
+                "title": "",
+                "description": "",
+                "menu_link": "",
+                "end_time": 0,
+                "current_order": {},
+                "manager": 0,
+                "has_closed": False,
+            }
             return empty_data
 
     def write_raw_info(self, data: dict):
@@ -584,7 +654,7 @@ class Reminder:
                 "sub_tasks": [],
                 "author": 0,
                 "time": 0,
-                "notified": False
+                "notified": False,
             }
             return empty_data
 
@@ -695,8 +765,11 @@ class WarnPtsRankRecord:
 
     def __init__(self, start_date: datetime.datetime):
         self.start_date = start_date
-        self.file_path = os.path.join(base_dir, "warning_points_record_data",
-                                      self.start_date.strftime("%Y-%m-%d") + ".json")
+        self.file_path = os.path.join(
+            base_dir,
+            "warning_points_record_data",
+            self.start_date.strftime("%Y-%m-%d") + ".json",
+        )
 
     def get_raw_info(self):
         if os.path.exists(self.file_path):
