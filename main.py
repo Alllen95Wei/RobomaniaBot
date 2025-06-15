@@ -34,7 +34,7 @@ default_color = 0x012A5E
 error_color = 0xF1411C
 real_logger = logger.CreateLogger()
 大會_URL = (
-    "https://discord.com/channels/1114203090950836284/1114209308910026792"  # noqa
+    "https://discord.com/channels/1114203090950836284/1114209308910026792"
 )
 # 載入TOKEN
 load_dotenv(dotenv_path=os.path.join(base_dir, "TOKEN.env"))
@@ -58,7 +58,7 @@ async def check_meeting():
                     embed = Embed(
                         title="會議開始！",
                         description=f"會議**「{meeting_obj}」**已經在"
-                                    f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
+                        f"<t:{int(meeting_obj.get_start_time())}:F>開始！",
                         color=default_color,
                     )
                     if meeting_obj.get_description() != "":
@@ -70,31 +70,35 @@ async def check_meeting():
                     embed.add_field(
                         name="主持人",
                         value=f"<@{meeting_obj.get_host()}> "
-                              f"({bot.get_user(meeting_obj.get_host())})",
+                        f"({bot.get_user(meeting_obj.get_host())})",
                         inline=False,
                     )
                     embed.add_field(
                         name="會議地點", value=meeting_obj.get_link(), inline=False
                     )
-                    if meeting_obj.get_absent_members():
+                    if meeting_obj.get_absent_requests() is not None:
                         absent_members = ""
-                        for mem in meeting_obj.get_absent_members():
-                            member_obj = json_assistant.User(mem[0])
-                            absent_members += f"<@{mem[0]}>({member_obj.get_real_name()}) - *{mem[1]}*\n"
+                        for request in meeting_obj.get_absent_requests().get(
+                            "reviewed"
+                        ):
+                            if request["result"].get("approved", False):
+                                member_obj = json_assistant.User(request["member"])
+                                absent_members += (f"<@{request['member']}>({member_obj.get_real_name()}) - "
+                                                   f"*{request['reason']}*\n")
                         embed.add_field(
                             name="請假人員", value=absent_members, inline=False
                         )
                     await m.send(content="@everyone", embed=embed)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
                 elif (
-                        meeting_obj.get_notified() is False
-                        and meeting_obj.get_start_time() - time.time() <= 300
+                    meeting_obj.get_notified() is False
+                    and meeting_obj.get_start_time() - time.time() <= 300
                 ):
                     real_logger.info(f"會議 {meeting_id} 即將開始(傳送通知)！")
                     embed = Embed(
                         title="會議即將開始！",
                         description=f"會議**「{meeting_obj}」**即將於"
-                                    f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                        f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
                         color=default_color,
                     )
                     if meeting_obj.get_description() != "":
@@ -110,8 +114,8 @@ async def check_meeting():
                     meeting_obj.set_notified(True)
                     real_logger.info(f"已傳送會議 {meeting_id} 的開始通知。")
             elif (
-                    meeting_obj.get_started()
-                    and time.time() - meeting_obj.get_start_time() >= 172800
+                meeting_obj.get_started()
+                and time.time() - meeting_obj.get_start_time() >= 172800
             ):
                 meeting_obj.archive()
                 real_logger.info(
@@ -287,7 +291,9 @@ class Absent(discord.ui.Modal):
 
 
 class ReviewAbsentRequest(discord.ui.Modal):
-    def __init__(self, meeting_id: str, member_id: int, approved: bool, reason: str) -> None:
+    def __init__(
+        self, meeting_id: str, member_id: int, approved: bool, reason: str
+    ) -> None:
         super().__init__(title="接受" if approved else "拒絕" + "假單原因")
         self.add_item(
             discord.ui.InputText(
@@ -319,8 +325,13 @@ class ReviewAbsentRequest(discord.ui.Modal):
         embed = Embed(
             title=f"已{operation}假單",
             description=f"{interaction.user.mention} 已**「{operation}」**了 {request_member.mention} 的假單。",
-            color=default_color)
-        embed.add_field(name="會議 ID 及名稱", value=f"`{self.meeting_id}` ({meeting_obj.get_name()})", inline=False)
+            color=default_color,
+        )
+        embed.add_field(
+            name="會議 ID 及名稱",
+            value=f"`{self.meeting_id}` ({meeting_obj.get_name()})",
+            inline=False,
+        )
         embed.add_field(name="請假原因", value=self.reason, inline=False)
         if response != "":
             embed.add_field(name=f"{operation}原因", value=response, inline=False)
@@ -329,7 +340,7 @@ class ReviewAbsentRequest(discord.ui.Modal):
             response_embed = Embed(
                 title="假單已通過審核",
                 description=f"{interaction.user.mention} 已**「{operation}」**了你的會議假單。",
-                color=default_color
+                color=default_color,
             )
         else:
             response_embed = Embed(
@@ -340,10 +351,16 @@ class ReviewAbsentRequest(discord.ui.Modal):
                 ),
                 color=default_color,
             )
-        response_embed.add_field(name="會議 ID 及名稱", value=f"`{self.meeting_id}` ({meeting_obj.get_name()})", inline=False)
+        response_embed.add_field(
+            name="會議 ID 及名稱",
+            value=f"`{self.meeting_id}` ({meeting_obj.get_name()})",
+            inline=False,
+        )
         response_embed.add_field(name="請假原因", value=self.reason, inline=False)
         if response != "":
-            response_embed.add_field(name=f"{operation}原因", value=response, inline=False)
+            response_embed.add_field(
+                name=f"{operation}原因", value=response, inline=False
+            )
         await request_member.send(embed=response_embed)
 
 
@@ -357,7 +374,7 @@ class ReviewAbsentRequestInView(discord.ui.View):
 
     @discord.ui.button(label="接受", style=discord.ButtonStyle.green, emoji="✅")
     async def approve(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ) -> None:
         await interaction.response.send_modal(
             ReviewAbsentRequest(self.meeting_id, self.member_id, True, self.reason)
@@ -365,7 +382,7 @@ class ReviewAbsentRequestInView(discord.ui.View):
 
     @discord.ui.button(label="拒絕", style=discord.ButtonStyle.red, emoji="🔙")
     async def decline(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ) -> None:
         await interaction.response.send_modal(
             ReviewAbsentRequest(self.meeting_id, self.member_id, False, self.reason)
@@ -402,7 +419,7 @@ class GetEventInfoInView(discord.ui.View):
         label="點此開啟會議視窗", style=discord.ButtonStyle.green, emoji="📝"
     )
     async def button_callback(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         await interaction.response.send_modal(MeetingEditor(self.meeting_id))
 
@@ -422,7 +439,7 @@ class AbsentInView(discord.ui.View):
         label="點此開啟請假視窗", style=discord.ButtonStyle.red, emoji="🙋"
     )
     async def button_callback(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         meeting_obj = json_assistant.Meeting(self.meeting_id)
         absent_deadline = meeting_obj.get_start_time() - 60 * 10
@@ -430,7 +447,7 @@ class AbsentInView(discord.ui.View):
             embed = Embed(
                 title="錯誤：自動請假期限已到",
                 description="請假需在會議 10 分鐘前處理完畢。\n"
-                            f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
+                f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
                 color=error_color,
             )
             await interaction.followup.send(embed=embed, ephemeral=True)
@@ -448,7 +465,7 @@ class RespondLeaderMailboxInView(discord.ui.View):
         label="以私人訊息回覆", style=discord.ButtonStyle.green, emoji="💬"
     )
     async def private_respond(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         await interaction.response.send_modal(
             RespondLeaderMailbox(
@@ -460,7 +477,7 @@ class RespondLeaderMailboxInView(discord.ui.View):
         label="以公開訊息回覆", style=discord.ButtonStyle.blurple, emoji="📢"
     )
     async def public_respond(
-            self, button: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         await interaction.response.send_modal(
             RespondLeaderMailbox(
@@ -510,7 +527,7 @@ async def on_application_command_error(ctx, error):
         )
         await ctx.respond(embed=embed, ephemeral=True)
     elif isinstance(error, commands.NotOwner) or isinstance(
-            error, commands.MissingRole
+        error, commands.MissingRole
     ):
         embed = Embed(
             title="錯誤", description="你沒有權限使用此指令。", color=error_color
@@ -553,9 +570,9 @@ async def on_application_command_error(ctx, error):
 
 # @member_cmd.command(name="查詢", description="查看隊員資訊。")
 # async def member_info(ctx,
-#                       隊員: Option(discord.Member, "隊員", required=False) = None):  # noqa
+#                       隊員: Option(discord.Member, "隊員", required=False) = None):
 #     if 隊員 is None:
-#         隊員 = ctx.author  # noqa
+#         隊員 = ctx.author
 #     member_data = json_assistant.User(隊員.id)
 #     jobs_str = ""
 #     if len(member_data.get_jobs()) != 0:
@@ -622,72 +639,72 @@ member_info_manage = bot.create_group(name="manage", description="隊員資訊�
 @member_info_manage.command(name="設定真名", description="設定隊員真實姓名。")
 @commands.has_role(1114205838144454807)
 async def member_set_real_name(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        真實姓名: Option(str, "真實姓名", required=True),
-):  # noqa
-    member_data = json_assistant.User(隊員.id)
-    member_data.set_real_name(真實姓名)
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    real_name: Option(str, "真實姓名", name="真實姓名", required=True),
+):
+    member_data = json_assistant.User(member.id)
+    member_data.set_real_name(real_name)
     embed = Embed(
         title="設定真實姓名",
-        description=f"已將 {隊員.mention} 的真實姓名設定為 {真實姓名}。",
+        description=f"已將 {member.mention} 的真實姓名設定為 {real_name}。",
         color=default_color,
     )
-    embed.set_thumbnail(url=隊員.display_avatar)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
 
 
 @member_info_manage.command(name="新增職務", description="新增隊員職務。")
 @commands.has_role(1114205838144454807)
 async def member_add_job(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        職務: Option(str, "職務", required=True),
-):  # noqa
-    member_data = json_assistant.User(隊員.id)
-    member_data.add_job(職務)
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    job: Option(str, "職務", name="職務", required=True),
+):
+    member_data = json_assistant.User(member.id)
+    member_data.add_job(job)
     embed = Embed(
         title="新增職務",
-        description=f"已將 {隊員.mention} 新增職務 {職務}。",
+        description=f"已將 {member.mention} 新增職務 {job}。",
         color=default_color,
     )
-    embed.set_thumbnail(url=隊員.display_avatar)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
 
 
 @member_info_manage.command(name="移除職務", description="移除隊員職務。")
 @commands.has_role(1114205838144454807)
 async def member_remove_job(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        職務: Option(str, "職務", required=True),
-):  # noqa
-    member_data = json_assistant.User(隊員.id)
-    member_data.remove_job(職務)
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    job: Option(str, "職務", name="職務", required=True),
+):
+    member_data = json_assistant.User(member.id)
+    member_data.remove_job(job)
     embed = Embed(
         title="移除職務",
-        description=f"已將 {隊員.mention} 移除職務 {職務}。",
+        description=f"已將 {member.mention} 移除職務 {job}。",
         color=default_color,
     )
-    embed.set_thumbnail(url=隊員.display_avatar)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
 
 
 @member_info_manage.command(name="add_meeting_time", description="新增隊員會議時數。")
 @commands.has_role(1114205838144454807)
 async def member_add_meeting_time(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        會議時數: Option(int, "會議時數", required=True),
-):  # noqa
-    member_data = json_assistant.User(隊員.id)
-    member_data.add_meeting_time(會議時數)
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    meeting_hours: Option(int, "會議時數", name="會議時數", required=True),
+):
+    member_data = json_assistant.User(member.id)
+    member_data.add_meeting_time(meeting_hours)
     embed = Embed(
         title="新增會議時數",
-        description=f"已將 {隊員.mention} 新增會議時數 {會議時數}。",
+        description=f"已將 {member.mention} 新增會議時數 {meeting_hours}。",
         color=default_color,
     )
-    embed.set_thumbnail(url=隊員.display_avatar)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
 
 
@@ -710,40 +727,40 @@ warning_points_choices = [
 )
 @commands.has_role(1114205838144454807)
 async def member_add_warning_points(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        記點事由: Option(
-            str, "記點事由", choices=warning_points_choices, required=True  # noqa
-        ),
-        附註: Option(str, "附註事項", required=False),
-):  # noqa
-    reason = 記點事由[5:]
-    member_data = json_assistant.User(隊員.id)
-    points = 記點事由[0:1]
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    reason: Option(
+        str, "記點事由", name="記點事由", choices=warning_points_choices, required=True
+    ),
+    comment: Option(str, "附註事項", name="附註", required=False),
+):
+    reason = reason[5:]
+    member_data = json_assistant.User(member.id)
+    points = reason[0:1]
     if points == "半":
         points = 0.5
     else:
         points = int(points)
-    member_data.add_warning_points(points, reason, 附註)
+    member_data.add_warning_points(points, reason, comment)
     current_points = member_data.get_warning_points()
     embed = Embed(
-        title="記點", description=f"已將 {隊員.mention} 記點。", color=default_color
+        title="記點", description=f"已將 {member.mention} 記點。", color=default_color
     )
     embed.add_field(name="記點點數", value=f"`{points}` 點", inline=True)
     embed.add_field(
         name="目前點數 (已加上新點數)", value=f"`{current_points}` 點", inline=True
     )
     embed.add_field(name="記點事由", value=reason, inline=False)
-    if 附註 is not None:
-        embed.add_field(name="附註事項", value=附註, inline=False)
-    embed.set_thumbnail(url=隊員.display_avatar)
+    if comment is not None:
+        embed.add_field(name="附註事項", value=comment, inline=False)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
-    mention_text = f"{隊員.mention} 由於**「{reason}」**，依照隊規記上 `{points}` 點。"
+    mention_text = f"{member.mention} 由於**「{reason}」**，依照隊規記上 `{points}` 點。"
     await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(
             title="退隊警告！",
-            description=f"{隊員.mention} 的點數已達到 {current_points} 點！",
+            description=f"{member.mention} 的點數已達到 {current_points} 點！",
             color=error_color,
         )
         warning_msg.set_footer(
@@ -758,34 +775,34 @@ async def member_add_warning_points(
 )
 @commands.has_role(1114205838144454807)
 async def member_add_warning_points_with_exceptions(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        點數: Option(float, "點數", required=True),  # noqa
-        事由: Option(str, "事由", required=True),  # noqa
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    pts: Option(float, "點數", name="點數", required=True),
+    reason: Option(str, "事由", name="事由", required=True),
 ):
-    member_data = json_assistant.User(隊員.id)
-    member_data.add_warning_points(點數, "使用「意外記/銷點」指令", 事由)
+    member_data = json_assistant.User(member.id)
+    member_data.add_warning_points(pts, "使用「意外記/銷點」指令", reason)
     current_points = member_data.get_warning_points()
     embed = Embed(
         title="意外記/銷點",
-        description=f"已將 {隊員.mention} 記/銷點。",
+        description=f"已將 {member.mention} 記/銷點。",
         color=default_color,
     )
-    embed.add_field(name="記/銷點點數", value=f"`{點數}` 點", inline=True)
+    embed.add_field(name="記/銷點點數", value=f"`{pts}` 點", inline=True)
     embed.add_field(
         name="目前點數 (已加上/減去新點數)", value=f"`{current_points}` 點", inline=True
     )
     embed.add_field(name="記點事由", value="使用「意外記/銷點」指令", inline=False)
-    embed.add_field(name="附註事項", value=事由, inline=False)
-    embed.set_thumbnail(url=隊員.display_avatar)
+    embed.add_field(name="附註事項", value=reason, inline=False)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
-    if 點數 > 0:
-        mention_text = f"{隊員.mention} 由於**「{事由}」**，記上 {點數} 點。"
+    if pts > 0:
+        mention_text = f"{member.mention} 由於**「{reason}」**，記上 {pts} 點。"
         await ctx.channel.send(content=mention_text)
     if current_points >= 4:
         warning_msg = Embed(
             title="退隊警告！",
-            description=f"{隊員.mention} 的點數已達到 {current_points} 點！",
+            description=f"{member.mention} 的點數已達到 {current_points} 點！",
             color=error_color,
         )
         warning_msg.set_footer(
@@ -804,23 +821,23 @@ remove_warning_points_choices = [
 @member_info_manage.command(name="銷點", description="銷點。")
 @commands.has_role(1114205838144454807)
 async def member_remove_warning_points(
-        ctx,
-        隊員: Option(discord.Member, "隊員", required=True),  # noqa
-        銷點事由: Option(  # noqa
-            str, "銷點事由", choices=remove_warning_points_choices, required=True
-        ),
-        附註: Option(str, "附註事項", required=False),  # noqa
+    ctx,
+    member: Option(discord.Member, "隊員", name="隊員", required=True),
+    reason: Option(
+        str, "銷點事由", name="銷點事由", choices=remove_warning_points_choices, required=True
+    ),
+    comment: Option(str, "附註事項", name="附註事項", required=False),
 ):
-    reason = 銷點事由[5:]
-    member_data = json_assistant.User(隊員.id)
-    points = 銷點事由[0:1]
+    reason = reason[5:]
+    member_data = json_assistant.User(member.id)
+    points = reason[0:1]
     if points == "半":
         points = -0.5
     else:
         points = int(points) * -1
-    member_data.add_warning_points(points, reason, 附註)
+    member_data.add_warning_points(points, reason, comment)
     embed = Embed(
-        title="銷點", description=f"已將 {隊員.mention} 銷點。", color=default_color
+        title="銷點", description=f"已將 {member.mention} 銷點。", color=default_color
     )
     if member_data.get_warning_points() < 0:
         member_data.add_warning_points(
@@ -836,9 +853,9 @@ async def member_remove_warning_points(
         inline=True,
     )
     embed.add_field(name="銷點事由", value=reason, inline=False)
-    if 附註 is not None:
-        embed.add_field(name="附註事項", value=附註, inline=False)
-    embed.set_thumbnail(url=隊員.display_avatar)
+    if comment is not None:
+        embed.add_field(name="附註事項", value=comment, inline=False)
+    embed.set_thumbnail(url=member.display_avatar)
     await ctx.respond(embed=embed)
 
 
@@ -902,7 +919,7 @@ async def member_change_name_user(ctx, user: discord.Member):
 
 # @member_cmd.command(name="個人記點紀錄", description="查詢記點紀錄。")
 # async def member_get_warning_history(ctx,
-#                                      隊員: Option(discord.Member, "隊員", required=True)):  # noqa
+#                                      隊員: Option(discord.Member, "隊員", required=True)):
 #     member_data = json_assistant.User(隊員.id)
 #     embed = Embed(title="記點紀錄", description=f"{隊員.mention} 的記點紀錄", color=default_color)
 #     embed.add_field(name="目前點數", value=f"`{member_data.get_warning_points()}` 點", inline=False)
@@ -959,20 +976,22 @@ async def create_new_meeting(ctx):
 @meeting.command(name="編輯", description="編輯會議資訊。")
 @commands.has_role(1114205838144454807)
 async def edit_meeting(
-        ctx,
-        會議id: Option(str, "欲修改的會議ID", min_length=5, max_length=5, required=True),  # noqa
+    ctx,
+    meeting_id: Option(
+        str, "欲編輯的會議ID", name="會議id", min_length=5, max_length=5, required=True
+    ),
 ):
     id_list = json_assistant.Meeting.get_all_meeting_id()
-    if 會議id in id_list:
+    if meeting_id in id_list:
         embed = Embed(
             title="編輯會議",
             description="請點擊下方的按鈕，開啟會議編輯視窗。",
             color=default_color,
         )
-        await ctx.respond(embed=embed, view=GetEventInfoInView(會議id), ephemeral=True)
+        await ctx.respond(embed=embed, view=GetEventInfoInView(meeting_id), ephemeral=True)
     else:
         embed = Embed(
-            title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color
+            title="錯誤", description=f"會議 `{meeting_id}` 不存在！", color=error_color
         )
         await ctx.respond(embed=embed)
 
@@ -980,15 +999,15 @@ async def edit_meeting(
 @meeting.command(name="刪除", description="刪除會議。")
 @commands.has_role(1114205838144454807)
 async def delete_meeting(
-        ctx,
-        會議id: Option(  # noqa
-            str, "欲刪除的會議ID", min_length=5, max_length=5, required=True
-        ),
-        原因: Option(str, "取消會議的原因", required=True),  # noqa
+    ctx,
+    meeting_id: Option(
+        str, "欲刪除的會議ID", name="會議id", min_length=5, max_length=5, required=True
+    ),
+    reason: Option(str, "取消會議的原因", name="原因", required=True),
 ):
     id_list = json_assistant.Meeting.get_all_meeting_id()
-    if 會議id in id_list:
-        meeting_obj = json_assistant.Meeting(會議id)
+    if meeting_id in id_list:
+        meeting_obj = json_assistant.Meeting(meeting_id)
         if meeting_obj.get_started():
             embed = Embed(
                 title="錯誤",
@@ -999,13 +1018,13 @@ async def delete_meeting(
             m = bot.get_channel(1128232150135738529)
             notify_embed = Embed(
                 title="會議取消",
-                description=f"會議 `{會議id}` 已經取消。",
+                description=f"會議 `{meeting_id}` 已經取消。",
                 color=default_color,
             )
             notify_embed.add_field(
                 name="會議標題", value=meeting_obj.get_name(), inline=False
             )
-            notify_embed.add_field(name="取消原因", value=原因, inline=False)
+            notify_embed.add_field(name="取消原因", value=reason, inline=False)
             if meeting_obj.get_notified():
                 await m.send(content="@everyone", embed=notify_embed)
             else:
@@ -1013,12 +1032,12 @@ async def delete_meeting(
             meeting_obj.delete()
             embed = Embed(
                 title="會議取消",
-                description=f"會議 `{會議id}` 已經取消。",
+                description=f"會議 `{meeting_id}` 已經取消。",
                 color=default_color,
             )
     else:
         embed = Embed(
-            title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color
+            title="錯誤", description=f"會議 `{meeting_id}` 不存在！", color=error_color
         )
     await ctx.respond(embed=embed)
 
@@ -1035,17 +1054,19 @@ async def list_meetings(ctx):
 
 @meeting.command(name="請假", description="登記請假。")
 async def absence_meeting(
-        ctx: discord.ApplicationContext,
-        會議id: Option(str, "不會出席的會議ID"),  # noqa
-        原因: Option(str, "請假的原因", required=True),  # noqa
+    ctx: discord.ApplicationContext,
+    meeting_id: Option(
+        str, "要請假的會議ID", name="會議id", min_length=5, max_length=5, required=True
+    ),
+    reason: Option(str, "請假的原因", name="原因", required=True),
 ):
     if isinstance(ctx, discord.ApplicationContext):
         await ctx.defer()
     else:
         await ctx.response.defer()
     id_list = json_assistant.Meeting.get_all_meeting_id()
-    if 會議id in id_list:
-        meeting_obj = json_assistant.Meeting(會議id)
+    if meeting_id in id_list:
+        meeting_obj = json_assistant.Meeting(meeting_id)
         if meeting_obj.get_started():
             embed = Embed(
                 title="錯誤：會議已開始",
@@ -1056,7 +1077,7 @@ async def absence_meeting(
             embed = Embed(
                 title="錯誤：自動請假期限已到",
                 description="請假需在會議 10 分鐘前處理完畢。\n"
-                            f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
+                f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
                 color=error_color,
             )
         else:
@@ -1065,7 +1086,7 @@ async def absence_meeting(
                 embed = Embed(
                     title="錯誤：強制參加",
                     description="此會議已被設置為「強制參加」，因此無法透過此系統請假。\n"
-                                "若因故不能參加會議，請向主幹告知事由。",
+                    "若因故不能參加會議，請向主幹告知事由。",
                     color=error_color,
                 )
             else:
@@ -1080,7 +1101,7 @@ async def absence_meeting(
                         title="錯誤", description="你已經請過假了！", color=error_color
                     )
                 else:
-                    meeting_obj.add_absent_request(author_id, time.time(), 原因)
+                    meeting_obj.add_absent_request(author_id, time.time(), reason)
                     absent_record_channel = bot.get_channel(1126031617614426142)
                     user = json_assistant.User(author_id)
                     absent_record_embed = Embed(
@@ -1090,31 +1111,31 @@ async def absence_meeting(
                     )
                     absent_record_embed.add_field(
                         name="會議 ID 及名稱",
-                        value=f"`{會議id}` ({meeting_obj.get_name()})",
+                        value=f"`{meeting_id}` ({meeting_obj.get_name()})",
                         inline=False,
                     )
                     absent_record_embed.add_field(
-                        name="請假原因", value=原因, inline=False
+                        name="請假原因", value=reason, inline=False
                     )
                     await absent_record_channel.send(
                         embed=absent_record_embed,
-                        view=ReviewAbsentRequestInView(會議id, ctx.user.id, 原因)
+                        view=ReviewAbsentRequestInView(meeting_id, ctx.user.id, reason),
                     )
                     embed = Embed(
                         title="已送出假單",
                         description="你的假單已送出，請等候主幹的審核。\n"
-                                    "⚠️**注意：會議開始後，若你的假單未通過審核，即等於沒有請假，仍須參加會議！**",
+                        "⚠️**注意：會議開始後，若你的假單未通過審核，即等於沒有請假，仍須參加會議！**",
                         color=default_color,
                     )
                     embed.add_field(
                         name="會議 ID 及名稱",
-                        value=f"`{會議id}` ({meeting_obj.get_name()})",
+                        value=f"`{meeting_id}` ({meeting_obj.get_name()})",
                         inline=False,
                     )
-                    embed.add_field(name="請假原因", value=原因, inline=False)
+                    embed.add_field(name="請假原因", value=reason, inline=False)
     else:
         embed = Embed(
-            title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color
+            title="錯誤", description=f"會議 `{meeting_id}` 不存在！", color=error_color
         )
     if isinstance(ctx, discord.ApplicationContext):
         await ctx.respond(embed=embed)
@@ -1125,11 +1146,11 @@ async def absence_meeting(
 @meeting.command(name="設定會議記錄", description="設定會議記錄連結。")
 @commands.has_role(1114205838144454807)
 async def set_meeting_record_link(
-        ctx,
-        meeting_id: Option(
-            str, "欲設定的會議ID", min_length=5, max_length=5, required=True
-        ),
-        連結: Option(str, "會議記錄連結", required=True),  # noqa
+    ctx,
+    meeting_id: Option(
+        str, "欲設定的會議ID", min_length=5, max_length=5, required=True
+    ),
+    link: Option(str, "會議記錄連結", name="會議記錄連結", required=True),
 ):
     id_list = json_assistant.Meeting.get_all_meeting_id()
     if meeting_id in id_list:
@@ -1142,34 +1163,36 @@ async def set_meeting_record_link(
             r"(?:/?|[/?]\S+)$",
             re.IGNORECASE,
         )
-        if not re.match(regex, 連結):
+        if not re.match(regex, link):
             embed = Embed(
                 title="錯誤",
-                description=f"你輸入的連結({連結})格式不正確！",
+                description=f"你輸入的連結({link})格式不正確！",
                 color=error_color,
             )
         else:
-            meeting_obj.set_meeting_record_link(連結)
+            meeting_obj.set_meeting_record_link(link)
             embed = Embed(
                 title="設定會議記錄連結",
-                description=f"已將會議 `{meeting_id}` 的會議記錄連結設定為 `{連結}`。",
+                description=f"已將會議 `{meeting_id}` 的會議記錄連結設定為 `{link}`。",
                 color=default_color,
             )
-            if meeting_obj.get_absent_members():
+            if (meeting_obj.get_absent_requests() is not None
+                    and len(meeting_obj.get_absent_requests().get("reviewed", [])) > 0):
                 notify_channel = bot.get_channel(1128232150135738529)
                 absent_members_str = ""
-                for m in meeting_obj.get_absent_members():
-                    absent_members_str += f"<@{m[0]}> "
+                for request in meeting_obj.get_absent_requests().get("reviewed", []):
+                    if request["result"].get("approved", False):
+                        absent_members_str += f"<@{request['member']}> "
                 notify_embed = Embed(
                     title="會議記錄連結",
                     description=f"會議 `{meeting_id}` 的會議記錄連結已經設定。\n"
-                                f"缺席的成員，請務必閱讀會議紀錄！",
+                    "缺席的成員，請務必閱讀會議紀錄！",
                     color=default_color,
                 )
                 notify_embed.add_field(
                     name="會議名稱", value=meeting_obj.get_name(), inline=False
                 )
-                notify_embed.add_field(name="會議記錄連結", value=連結, inline=False)
+                notify_embed.add_field(name="會議記錄連結", value=link, inline=False)
                 await notify_channel.send(
                     content=absent_members_str, embed=notify_embed
                 )
@@ -1182,15 +1205,15 @@ async def set_meeting_record_link(
 
 @meeting.command(name="查詢", description="以會議id查詢會議資訊。")
 async def get_meeting_info(
-        ctx,
-        會議id: Option(str, "欲查詢的會議ID", min_length=5, max_length=5, required=True),
-):  # noqa
+    ctx,
+    meeting_id: Option(str, "欲查詢的會議ID", name="會議id", min_length=5, max_length=5, required=True),
+):
     id_list = json_assistant.Meeting.get_all_meeting_id()
-    if 會議id in id_list:
-        meeting_obj = json_assistant.Meeting(會議id)
+    if meeting_id in id_list:
+        meeting_obj = json_assistant.Meeting(meeting_id)
         embed = Embed(
             title="會議資訊",
-            description=f"會議 `{會議id}` 的詳細資訊",
+            description=f"會議 `{meeting_id}` 的詳細資訊",
             color=default_color,
         )
         embed.add_field(name="會議名稱", value=meeting_obj.get_name(), inline=False)
@@ -1213,14 +1236,19 @@ async def get_meeting_info(
                 value=meeting_obj.get_meeting_record_link(),
                 inline=False,
             )
-        if meeting_obj.get_absent_members():
+        if meeting_obj.get_absent_requests() is not None:
             absent_members_str = ""
-            for m in meeting_obj.get_absent_members():
-                absent_members_str += f"<@{m[0]}> - *{m[1]}*\n"
+            for request in meeting_obj.get_absent_requests().get("reviewed"):
+                if request["result"].get("approved", False):
+                    member_obj = json_assistant.User(request["member"])
+                    absent_members_str += (
+                        f"<@{request['member']}>({member_obj.get_real_name()}) - "
+                        f"*{request['reason']}*\n"
+                    )
             embed.add_field(name="請假人員", value=absent_members_str, inline=False)
     else:
         embed = Embed(
-            title="錯誤", description=f"會議 `{會議id}` 不存在！", color=error_color
+            title="錯誤", description=f"會議 `{meeting_id}` 不存在！", color=error_color
         )
     await ctx.respond(embed=embed)
 
@@ -1228,14 +1256,14 @@ async def get_meeting_info(
 @commands.cooldown(1, 300)
 @bot.slash_command(name="隊長信箱", description="匿名寄送訊息給隊長。")
 async def send_message_to_leader(
-        ctx, 訊息: Option(str, "訊息內容", required=True)
-):  # noqa
+    ctx, msg: Option(str, "訊息內容", name="訊息", required=True)
+):
     mail_id = json_assistant.Message.create_new_message()
     mail = json_assistant.Message(mail_id)
     data = {
         "author": ctx.author.id,
         "time": time.time(),
-        "content": 訊息,
+        "content": msg,
         "replied": False,
         "response": "",
     }
@@ -1249,7 +1277,7 @@ async def send_message_to_leader(
     mail_embed.add_field(
         name="傳送時間", value=f"<t:{int(time.time())}:F>", inline=False
     )
-    mail_embed.add_field(name="訊息內容", value=訊息, inline=False)
+    mail_embed.add_field(name="訊息內容", value=msg, inline=False)
     mail_embed.set_thumbnail(url=ctx.author.display_avatar)
     mail_embed.set_footer(text="如果要回覆此訊息，請點選下方的按鈕。")
     mailbox_channel = bot.get_channel(1149274793917558814)
@@ -1259,40 +1287,36 @@ async def send_message_to_leader(
     embed = Embed(
         title="隊長信箱", description="你的訊息已經傳送給隊長。", color=default_color
     )
-    embed.add_field(name="訊息內容", value=訊息, inline=False)
+    embed.add_field(name="訊息內容", value=msg, inline=False)
     embed.add_field(
         name="此訊息會被其他成員看到嗎？",
         value="放心，隊長信箱的訊息僅會被隊長本人看到。\n"
-              "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。",
+        "如果隊長要**公開**回覆你的訊息，也僅會將訊息的內容公開，不會提到你的身分。",
     )
     embed.add_field(
         name="隊長會回覆我的訊息嗎？",
         value="隊長可以選擇以**私人**或**公開**方式回覆你的訊息。\n"
-              "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
-              "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)",
+        "- **私人**：你會收到一則機器人傳送的私人訊息。(請確認你已允許陌生人傳送私人訊息！)\n"
+        "- **公開**：隊長的回覆會在<#1152158914847199312>與你的訊息一同公布。(不會公開你的身分！)",
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="隊長信箱回覆", description="(隊長限定)回覆隊長信箱的訊息。")
 async def reply_to_leader_mail(
-        ctx,
-        msg_id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
-        msg: Option(str, "回覆的訊息內容", required=True),
-        response_type: Option(
-            str, "選擇以公開或私人方式回覆", choices=["公開", "私人"], required=True
-        ),
+    ctx,
+    msg_id: Option(str, "欲回覆的訊息ID", min_length=5, max_length=5, required=True),
+    msg: Option(str, "回覆的訊息內容", required=True),
+    response_type: Option(
+        str, "選擇以公開或私人方式回覆", choices=["公開", "私人"], required=True
+    ),
 ):
     if isinstance(ctx, discord.Interaction):
         await ctx.response.defer()
     else:
         await ctx.defer()
-    leader = bot.get_user(842974332862726214)
-    if isinstance(ctx, discord.Interaction):
-        author = ctx.user
-    else:
-        author = ctx.author
-    if author == leader:
+    author = ctx.user
+    if author.id == 842974332862726214:
         if msg_id in json_assistant.Message.get_all_message_id():
             mail = json_assistant.Message(msg_id)
             if mail.get_replied():
@@ -1380,14 +1404,14 @@ async def reply_to_leader_mail(
 @bot.slash_command(name="clear", description="清除目前頻道中的訊息。")
 @commands.has_role(1114205838144454807)
 async def clear_messages(
-        ctx: discord.ApplicationContext,
-        count: Option(
-            int,
-            name="刪除訊息數",
-            description="要刪除的訊息數量",
-            min_value=1,
-            max_value=50,
-        ),
+    ctx: discord.ApplicationContext,
+    count: Option(
+        int,
+        name="刪除訊息數",
+        description="要刪除的訊息數量",
+        min_value=1,
+        max_value=50,
+    ),
 ):
     channel = ctx.channel
     channel: discord.TextChannel
@@ -1424,16 +1448,16 @@ async def debug(ctx):
     description_localizations={"zh-TW": "提供關於這隻機器人的資訊。"},
 )
 async def about(
-        ctx, 私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False
-):  # noqa
+    ctx, is_private: Option(bool, "是否以私人訊息回應", name="私人訊息", required=False) = False
+):
     embed = Embed(title="關於", color=default_color)
     embed.set_thumbnail(url=bot.user.display_avatar)
     embed.add_field(
         name="程式碼與授權",
         value="本機器人由<@657519721138094080>維護，使用[Py-cord]"
-              "(https://github.com/Pycord-Development/pycord)進行開發。\n"
-              "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
-              "查看。",
+        "(https://github.com/Pycord-Development/pycord)進行開發。\n"
+        "本機器人的程式碼及檔案皆可在[這裡](https://github.com/Alllen95Wei/RobomaniaBot)"
+        "查看。",
         inline=True,
     )
     embed.add_field(
@@ -1448,7 +1472,7 @@ async def about(
     embed.add_field(name=f"分支訊息：{sha}", value=update_msg, inline=False)
     year = time.strftime("%Y")
     embed.set_footer(text=f"©Allen Why, {year} | 版本：commit {sha[:7]}")
-    await ctx.respond(embed=embed, ephemeral=私人訊息)
+    await ctx.respond(embed=embed, ephemeral=is_private)
 
 
 @bot.slash_command(name="dps", description="查詢伺服器電腦的CPU及記憶體使用率。")
@@ -1464,10 +1488,10 @@ async def dps(ctx):
 @bot.slash_command(name="update", description="更新機器人。")
 @commands.is_owner()
 async def update(
-        ctx, 私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False
-):  # noqa
+    ctx, is_private: Option(bool, "是否以私人訊息回應", name="私人訊息", required=False) = False
+):
     embed = Embed(title="更新中", description="更新流程啟動。", color=default_color)
-    await ctx.respond(embed=embed, ephemeral=私人訊息)
+    await ctx.respond(embed=embed, ephemeral=is_private)
     event = discord.Activity(type=discord.ActivityType.playing, name="更新中...")
     await bot.change_presence(status=discord.Status.idle, activity=event)
     upd.update(os.getpid(), system())
@@ -1476,31 +1500,31 @@ async def update(
 @bot.slash_command(name="cmd", description="在伺服器端執行指令並傳回結果。")
 @commands.is_owner()
 async def cmd(
-        ctx,
-        指令: Option(str, "要執行的指令", required=True),  # noqa: PEP 3131
-        執行模組: Option(
-            str,
-            choices=["subprocess", "os"],
-            description="執行指令的模組",  # noqa: PEP 3131
-            required=False,
-        ) = "subprocess",
-        私人訊息: Option(bool, "是否以私人訊息回應", required=False) = False,
-):  # noqa: PEP 3131
+    ctx,
+    command: Option(str, "要執行的指令", name="指令", required=True),
+    desired_module: Option(
+        str,
+        name="執行模組",
+        choices=["subprocess", "os"],
+        description="執行指令的模組",
+        required=False,
+    ) = "subprocess",
+    is_private: Option(bool, "是否以私人訊息回應", name="私人訊息", required=False) = False,
+):
     try:
-        await ctx.defer(ephemeral=私人訊息)
-        command = split(指令)
-        if command[0] == "cmd":
+        await ctx.defer(ephemeral=is_private)
+        if split(command)[0] == "cmd":
             embed = Embed(
                 title="錯誤",
                 description="基於安全原因，你不能執行這個指令。",
                 color=error_color,
             )
-            await ctx.respond(embed=embed, ephemeral=私人訊息)
+            await ctx.respond(embed=embed, ephemeral=is_private)
             return
-        if 執行模組 == "subprocess":
+        if desired_module == "subprocess":
             result = str(run(command, capture_output=True, text=True).stdout)
         else:
-            result = str(os.popen(指令).read())
+            result = str(os.popen(command).read())
         if result != "":
             embed = Embed(
                 title="執行結果", description=f"```{result}```", color=default_color
@@ -1523,18 +1547,18 @@ async def cmd(
     except Exception as e:
         embed = Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
     try:
-        await ctx.respond(embed=embed, ephemeral=私人訊息)
+        await ctx.respond(embed=embed, ephemeral=is_private)
     except discord.errors.HTTPException as HTTPError:
         if "fewer in length" in str(HTTPError):
             txt_file_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)), "full_msg.txt"
             )
             with open(txt_file_path, "w") as file:
-                file.write(str(result))  # noqa
+                file.write(str(result))
             await ctx.respond(
                 "由於訊息長度過長，因此改以文字檔方式呈現。",
                 file=discord.File(txt_file_path),
-                ephemeral=私人訊息,
+                ephemeral=is_private,
             )
             os.remove(txt_file_path)
 
@@ -1544,22 +1568,22 @@ async def on_message(message):
     if message.author.id == bot.user.id:
         return
     if (
-            "The startCompetition() method" in message.content
-            or "Warning at" in message.content
+        "The startCompetition() method" in message.content
+        or "Warning at" in message.content
     ):
         await message.reply("<:deadge:1200367980748476437>" * 3)
 
 
 @bot.event
 async def on_voice_state_update(
-        member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
+    member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
 ):
     if member.bot:
         return
     if (
-            before.channel is None
-            or after.channel is None
-            or before.channel.id != after.channel.id
+        before.channel is None
+        or after.channel is None
+        or before.channel.id != after.channel.id
     ):
         member_real_name = json_assistant.User(member.id).get_real_name()
         if member_real_name is None:
@@ -1584,9 +1608,9 @@ VC_LOGGER = logging.getLogger("VC")
 
 
 def log_vc_activity(
-        join_or_leave: Literal["join", "leave"],
-        user: discord.User | discord.Member,
-        channel: discord.VoiceChannel,
+    join_or_leave: Literal["join", "leave"],
+    user: discord.User | discord.Member,
+    channel: discord.VoiceChannel,
 ):
     log_path = os.path.join(
         base_dir,
