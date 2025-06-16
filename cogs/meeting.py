@@ -614,6 +614,11 @@ class Meeting(commands.Cog):
                 else:
                     await m.send(embed=notify_embed)
                 meeting_obj.delete()
+                if meeting_id in MEETING_TASKS.keys():
+                    for _, task in MEETING_TASKS[meeting_id].items():
+                        if task is not None:
+                            task.stop()
+                        del MEETING_TASKS[meeting_id]
                 embed = Embed(
                     title="會議取消",
                     description=f"會議 `{meeting_id}` 已經取消。",
