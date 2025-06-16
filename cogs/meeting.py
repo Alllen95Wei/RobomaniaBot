@@ -618,7 +618,7 @@ class Meeting(commands.Cog):
                     for _, task in MEETING_TASKS[meeting_id].items():
                         if task is not None:
                             task.stop()
-                        del MEETING_TASKS[meeting_id]
+                    del MEETING_TASKS[meeting_id]
                 embed = Embed(
                     title="會議取消",
                     description=f"會議 `{meeting_id}` 已經取消。",
