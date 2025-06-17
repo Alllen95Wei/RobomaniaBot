@@ -90,16 +90,17 @@ class Meeting(commands.Cog):
             await ch.send(content="@everyone", embed=embed)
         del MEETING_TASKS[meeting_id]
 
-    def setup_tasks(self, meeting_id):
+    def setup_tasks(self, meeting_id) -> float:
         meeting_obj = json_assistant.Meeting(meeting_id)
         if meeting_id in MEETING_TASKS.keys():
-            for (_, task) in MEETING_TASKS[meeting_id].items():
+            for _, task in MEETING_TASKS[meeting_id].items():
                 if task is not None:
                     task.stop()
         if not meeting_obj.get_start_time() - time.time() >= 300:
-            notify_time = datetime.datetime.fromtimestamp(time.time() + 5, now_tz).astimezone(None).timetz()
+            notify_timestamp = time.time() + 5
         else:
-            notify_time = datetime.datetime.fromtimestamp(time.time() + 300, now_tz).astimezone(None).timetz()
+            notify_timestamp = time.time() + 300
+        notify_time = datetime.datetime.fromtimestamp(notify_timestamp, now_tz).astimezone(None).timetz()
         start_time = datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz).astimezone(None).timetz()
         MEETING_TASKS[meeting_id] = {
             "notify": tasks.Loop(
@@ -125,6 +126,7 @@ class Meeting(commands.Cog):
         }
         MEETING_TASKS[meeting_id]["notify"].start(meeting_id)
         MEETING_TASKS[meeting_id]["start"].start(meeting_id)
+        return notify_timestamp
 
     # @tasks.loop(seconds=5)
     # async def check_meeting(self):
@@ -870,6 +872,23 @@ class Meeting(commands.Cog):
                 description=f"會議 `{meeting_id}` 不存在！",
                 color=error_color,
             )
+        await ctx.respond(embed=embed)
+
+    @MEETING_CMDS.command(name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。")
+    @commands.is_owner()
+    async def reload_meetings(self, ctx: discord.ApplicationContext):
+        global MEETING_TASKS
+        MEETING_TASKS = {}
+        id_list = json_assistant.Meeting.get_all_meeting_id()
+        done_list = []
+        for mid in id_list:
+            meeting_obj = json_assistant.Meeting(mid)
+            if not meeting_obj.get_started():
+                notify_time = self.setup_tasks(mid)
+                done_list.append((mid, notify_time))
+        embed = Embed(title="已重新載入會議提醒", description="下列會議尚未開始，已為其設定提醒：")
+        for mid, notify_time in done_list:
+            embed.add_field(name=mid, value=f"將於 <t:{notify_time}:F> (<t:{notify_time}:R>) 提醒", inline=False)
         await ctx.respond(embed=embed)
 
 
