@@ -877,8 +877,6 @@ class Meeting(commands.Cog):
     @MEETING_CMDS.command(name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。")
     @commands.is_owner()
     async def reload_meetings(self, ctx: discord.ApplicationContext):
-        global MEETING_TASKS
-        MEETING_TASKS = {}
         id_list = json_assistant.Meeting.get_all_meeting_id()
         done_list = []
         for mid in id_list:
