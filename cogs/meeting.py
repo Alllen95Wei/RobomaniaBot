@@ -35,8 +35,8 @@ class Meeting(commands.Cog):
         if not meeting_obj.get_notified():
             embed = Embed(
                 title="會議即將開始！",
-                description=f"會議**「{meeting_obj}」**即將於"
-                f"<t:{int(meeting_obj.get_start_time())}:R>開始！",
+                description=f"會議**「{meeting_obj}」**即將於 "
+                f"<t:{int(meeting_obj.get_start_time())}:R> 開始！",
                 color=default_color,
             )
             if meeting_obj.get_description() != "":
@@ -282,6 +282,7 @@ class Meeting(commands.Cog):
             )
 
         async def callback(self, interaction: discord.Interaction):
+            is_edit = False
             if self.meeting_id is not None:
                 unique_id = self.meeting_id
                 embed = Embed(
@@ -289,6 +290,7 @@ class Meeting(commands.Cog):
                     description=f"會議 `{unique_id}` **({self.children[0].value})** 已經編輯成功！",
                     color=default_color,
                 )
+                is_edit = True
             else:
                 unique_id = json_assistant.Meeting.create_new_meeting()
                 embed = Embed(
@@ -349,20 +351,25 @@ class Meeting(commands.Cog):
                 embed.add_field(
                     name="會議記錄連結", value=self.children[4].value, inline=False
                 )
-            embed.set_footer(text="請記下會議ID，以便後續進行編輯或刪除。")
+            embed.set_footer(text="請記下會議 ID，以便後續進行編輯或刪除。")
             await interaction.response.edit_message(embed=embed, view=None)
             m = self.outer_instance.bot.get_channel(NOTIFY_CHANNEL_ID)
-            embed.title = "新會議"
-            embed.description = (
-                f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
-            )
+            if is_edit:
+                embed.title = "會議資訊更新"
+                embed.description = f"會議 `{unique_id}` **({self.children[0].value})** 的資訊已更新。**請以最新通知訊息為主！**"
+            else:
+                embed.title = "新會議"
+                embed.description = (
+                    f"會議 `{unique_id}` **({self.children[0].value})** 已經預定成功！"
+                )
             if self.children[1].value != "":
                 embed.set_footer(text="若因故不能參加會議，請向主幹告知事由。")
             else:
-                embed.set_footer(text="如要請假，最晚請在會議開始前10分鐘處理完畢。")
+                embed.set_footer(text="如要請假，最晚請在會議開始前 10 分鐘處理完畢。")
             await m.send(
                 embed=embed,
-                view=self.outer_instance.AbsentInView(self.outer_instance, unique_id) if self.children[1].value == "" else None,
+                view=self.outer_instance.AbsentInView(self.outer_instance, unique_id) if self.children[1].value == ""
+                else None,
             )
             logging.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
             self.outer_instance.setup_tasks(unique_id)
