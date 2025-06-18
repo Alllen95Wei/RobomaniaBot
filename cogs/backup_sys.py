@@ -162,4 +162,4 @@ class Backup(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Backup(bot, bot.logger))
-    bot.logger.info(f'"{Backup.__name__}"已被載入。')
+    bot.logger.info(f'已載入 "{Backup.__name__}"。')

@@ -171,4 +171,4 @@ class Verification(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Verification(bot, bot.logger))
-    bot.logger.info(f'"{Verification.__name__}"已被載入。')
+    bot.logger.info(f'已載入 "{Verification.__name__}"。')

@@ -276,5 +276,5 @@ class NewVerification(commands.Cog):
 
 def setup(bot):
     bot.add_cog(NewVerification(bot))
-    bot.logger.info(f'"{NewVerification.__name__}"已被載入。')
+    bot.logger.info(f'已載入 "{NewVerification.__name__}"。')
 

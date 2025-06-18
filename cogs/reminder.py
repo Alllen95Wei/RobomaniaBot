@@ -214,4 +214,4 @@ class Reminder(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Reminder(bot, bot.logger))
-    bot.logger.info(f'"{Reminder.__name__}"已被載入。')
+    bot.logger.info(f'已載入 "{Reminder.__name__}"。')

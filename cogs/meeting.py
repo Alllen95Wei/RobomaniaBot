@@ -892,4 +892,4 @@ class Meeting(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Meeting(bot))
-    logging.info(f'"{Meeting.__name__}"已被載入。')
+    logging.info(f'已載入 "{Meeting.__name__}"。')
