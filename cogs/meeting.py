@@ -30,7 +30,7 @@ class Meeting(commands.Cog):
 
     async def notify_meeting(self, meeting_id):
         meeting_obj = json_assistant.Meeting(meeting_id)
-        if meeting_obj.get_start_time() - time.time() > 100:
+        if meeting_obj.get_start_time() - time.time() > 1000:
             return
         if not meeting_obj.get_notified():
             embed = Embed(
@@ -53,7 +53,7 @@ class Meeting(commands.Cog):
 
     async def notify_start_meeting(self, meeting_id):
         meeting_obj = json_assistant.Meeting(meeting_id)
-        if meeting_obj.get_start_time() - time.time() > 100:
+        if meeting_obj.get_start_time() - time.time() > 1000:
             return
         if not meeting_obj.get_started():
             meeting_obj.set_started(True)
