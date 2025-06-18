@@ -95,7 +95,7 @@ class Meeting(commands.Cog):
         if meeting_id in MEETING_TASKS.keys():
             for _, task in MEETING_TASKS[meeting_id].items():
                 if task is not None:
-                    task.stop()
+                    task.cancel()
         if not meeting_obj.get_start_time() - time.time() >= 300:
             notify_timestamp = time.time() + 5
         else:
@@ -304,6 +304,7 @@ class Meeting(commands.Cog):
             meeting_obj.set_host(interaction.user.id)
             meeting_obj.set_link(self.children[3].value)
             meeting_obj.set_meeting_record_link(self.children[4].value)
+            meeting_obj.set_notified(False)
             logging.info(f"已預定/編輯會議 {unique_id}。")
             embed.add_field(name="會議ID", value=f"`{unique_id}`", inline=False)
             if self.children[1].value != "":
@@ -626,7 +627,7 @@ class Meeting(commands.Cog):
                 if meeting_id in MEETING_TASKS.keys():
                     for _, task in MEETING_TASKS[meeting_id].items():
                         if task is not None:
-                            task.stop()
+                            task.cancel()
                     del MEETING_TASKS[meeting_id]
                 embed = Embed(
                     title="會議取消",
@@ -884,6 +885,12 @@ class Meeting(commands.Cog):
     @MEETING_CMDS.command(name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。")
     @commands.is_owner()
     async def reload_meetings(self, ctx: discord.ApplicationContext):
+        global MEETING_TASKS
+        for meeting_id in MEETING_TASKS.keys():
+            for _, task in MEETING_TASKS[meeting_id].items():
+                if task is not None:
+                    task.cancel()
+        MEETING_TASKS = {}
         id_list = json_assistant.Meeting.get_all_meeting_id()
         done_list = []
         for mid in id_list:
