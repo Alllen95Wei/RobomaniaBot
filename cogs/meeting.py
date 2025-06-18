@@ -99,7 +99,7 @@ class Meeting(commands.Cog):
         if not meeting_obj.get_start_time() - time.time() >= 300:
             notify_timestamp = time.time() + 5
         else:
-            notify_timestamp = time.time() + 300
+            notify_timestamp = meeting_obj.get_start_time() - 300
         notify_time = datetime.datetime.fromtimestamp(notify_timestamp, now_tz).astimezone(None).timetz()
         start_time = datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz).astimezone(None).timetz()
         MEETING_TASKS[meeting_id] = {
