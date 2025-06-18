@@ -882,9 +882,9 @@ class Meeting(commands.Cog):
         for mid in id_list:
             meeting_obj = json_assistant.Meeting(mid)
             if not meeting_obj.get_started():
-                notify_time = self.setup_tasks(mid)
+                notify_time = int(self.setup_tasks(mid))
                 done_list.append((mid, notify_time))
-        embed = Embed(title="已重新載入會議提醒", description="下列會議尚未開始，已為其設定提醒：")
+        embed = Embed(title="已重新載入會議提醒", description="下列會議尚未開始，已為其設定提醒：", color=default_color)
         for mid, notify_time in done_list:
             embed.add_field(name=mid, value=f"將於 <t:{notify_time}:F> (<t:{notify_time}:R>) 提醒", inline=False)
         await ctx.respond(embed=embed)
