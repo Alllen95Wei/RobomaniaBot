@@ -215,7 +215,12 @@ class Meeting:
     def __str__(self):
         return self.get_name()
 
-    def get_raw_info(self):
+    def get_raw_info(
+        self,
+    ) -> dict[
+        str,
+        str | int | float | bool | dict[str, list[dict[str, str | int | float | dict]]],
+    ]:
         file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
             with open(file, "r", encoding="utf-8") as f:
