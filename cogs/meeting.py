@@ -30,13 +30,14 @@ class Meeting(commands.Cog):
 
     async def notify_meeting(self, meeting_id):
         meeting_obj = json_assistant.Meeting(meeting_id)
-        if meeting_obj.get_start_time() - time.time() > 1000:
+        start_time = int(meeting_obj.get_start_time())
+        if start_time - time.time() > 1000:
             return
         if not meeting_obj.get_notified():
             embed = Embed(
                 title="會議即將開始！",
                 description=f"會議**「{meeting_obj}」**即將於 "
-                f"<t:{int(meeting_obj.get_start_time())}:R> 開始！",
+                f"<t:{start_time}:R> 開始！",
                 color=default_color,
             )
             if meeting_obj.get_description() != "":
@@ -48,6 +49,19 @@ class Meeting(commands.Cog):
             embed.add_field(name="會議地點", value=meeting_obj.get_link(), inline=False)
             ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
             await ch.send(content="@everyone", embed=embed)
+            if meeting_obj.get_absent_requests() is not None:
+                for request in meeting_obj.get_absent_requests().get("pending"):
+                    embed = Embed(
+                        title="請準時參加會議",
+                        description="你的假單因 **尚未經過審核**，因此仍需準時出席會議。\n"
+                                    "如因故無法參加會議，請立即告知主幹。",
+                        color=default_color,
+                    )
+                    embed.add_field(name="開始時間", value=f"<t:{start_time}:R>", inline=False)
+                    try:
+                        await self.bot.get_user(request["member"]).send(embed=embed)
+                    except discord.Forbidden:
+                        logging.warning(f"成員 {request['member']} 似乎關閉了陌生人私訊功能，因此無法傳送通知。")
             meeting_obj.set_notified(True)
         del MEETING_TASKS[meeting_id]["notify"]
 
@@ -498,8 +512,8 @@ class Meeting(commands.Cog):
                 response_embed = Embed(
                     title="假單未通過審核",
                     description=(
-                        f"{interaction.user.mention} 已**「{operation}」**了你的會議假單。"
-                        "\n⚠️**注意：會議開始後，你仍須參加會議！**"
+                        f"{interaction.user.mention} 已**「{operation}」**了你的會議假單。\n"
+                        "⚠️**注意：會議開始後，你仍須參加會議！**"
                     ),
                     color=default_color,
                 )
