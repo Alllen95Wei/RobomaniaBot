@@ -233,8 +233,10 @@ class Meeting:
                 "host": "",
                 "link": "",
                 "start_time": 0,
-                "started": False,
                 "notified": False,
+                "started": False,
+                "ended": False,
+                "end_time": None,
                 "meeting_record_link": "",
                 "absent_requests": {"pending": [], "reviewed": []},
             }
@@ -297,6 +299,24 @@ class Meeting:
         meeting_info["link"] = link
         self.write_raw_info(meeting_info)
 
+    def get_notified(self):
+        meeting_info = self.get_raw_info()
+        return meeting_info["notified"]
+
+    def set_notified(self, notified: bool):
+        meeting_info = self.get_raw_info()
+        meeting_info["notified"] = notified
+        self.write_raw_info(meeting_info)
+
+    def get_started(self):
+        meeting_info = self.get_raw_info()
+        return meeting_info["started"]
+
+    def set_started(self, started: bool):
+        meeting_info = self.get_raw_info()
+        meeting_info["started"] = started
+        self.write_raw_info(meeting_info)
+
     def get_start_time(self):
         meeting_info = self.get_raw_info()
         return meeting_info["start_time"]
@@ -304,6 +324,16 @@ class Meeting:
     def set_start_time(self, start_time):
         meeting_info = self.get_raw_info()
         meeting_info["start_time"] = start_time
+        self.write_raw_info(meeting_info)
+
+    def get_end_time(self) -> tuple[bool, int | float | None]:
+        meeting_info = self.get_raw_info()
+        return meeting_info["ended"], meeting_info["end_time"]
+
+    def set_end_time(self, end_time: int):
+        meeting_info = self.get_raw_info()
+        meeting_info["ended"] = True
+        meeting_info["end_time"] = end_time
         self.write_raw_info(meeting_info)
 
     def disable_absent(self, disabled: bool):
@@ -316,9 +346,7 @@ class Meeting:
 
     def get_absent_requests(self) -> dict[str, list[dict]] | None:
         meeting_info = self.get_raw_info()
-        members = meeting_info.get(
-            "absent_requests", {"pending": [], "reviewed": []}
-        )
+        members = meeting_info.get("absent_requests", {"pending": [], "reviewed": []})
         if members == "disabled":
             return None
         else:
@@ -373,24 +401,6 @@ class Meeting:
         }
         del meeting_info["absent_requests"]["pending"][target_index]
         meeting_info["absent_requests"]["reviewed"].append(target_request)
-        self.write_raw_info(meeting_info)
-
-    def get_started(self):
-        meeting_info = self.get_raw_info()
-        return meeting_info["started"]
-
-    def set_started(self, started: bool):
-        meeting_info = self.get_raw_info()
-        meeting_info["started"] = started
-        self.write_raw_info(meeting_info)
-
-    def get_notified(self):
-        meeting_info = self.get_raw_info()
-        return meeting_info["notified"]
-
-    def set_notified(self, notified: bool):
-        meeting_info = self.get_raw_info()
-        meeting_info["notified"] = notified
         self.write_raw_info(meeting_info)
 
     def get_meeting_record_link(self):
