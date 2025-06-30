@@ -230,7 +230,7 @@ class Meeting:
             empty_data = {
                 "name": "",
                 "description": "",
-                "host": "",
+                "host": 0,
                 "link": "",
                 "start_time": 0,
                 "notified": False,
@@ -263,43 +263,43 @@ class Meeting:
         else:
             raise FileNotFoundError("File not found.")
 
-    def get_name(self):
+    def get_name(self) -> str:
         meeting_info = self.get_raw_info()
         return meeting_info["name"]
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         meeting_info = self.get_raw_info()
         meeting_info["name"] = name
         self.write_raw_info(meeting_info)
 
-    def get_description(self):
+    def get_description(self) -> str:
         meeting_info = self.get_raw_info()
         return meeting_info["description"]
 
-    def set_description(self, description):
+    def set_description(self, description: str):
         meeting_info = self.get_raw_info()
         meeting_info["description"] = description
         self.write_raw_info(meeting_info)
 
-    def get_host(self):
+    def get_host(self) -> int:
         meeting_info = self.get_raw_info()
         return meeting_info["host"]
 
-    def set_host(self, host):
+    def set_host(self, host: int):
         meeting_info = self.get_raw_info()
         meeting_info["host"] = host
         self.write_raw_info(meeting_info)
 
-    def get_link(self):
+    def get_link(self) -> str:
         meeting_info = self.get_raw_info()
         return meeting_info["link"]
 
-    def set_link(self, link):
+    def set_link(self, link: str):
         meeting_info = self.get_raw_info()
         meeting_info["link"] = link
         self.write_raw_info(meeting_info)
 
-    def get_notified(self):
+    def get_notified(self) -> bool:
         meeting_info = self.get_raw_info()
         return meeting_info["notified"]
 
@@ -308,7 +308,7 @@ class Meeting:
         meeting_info["notified"] = notified
         self.write_raw_info(meeting_info)
 
-    def get_started(self):
+    def get_started(self) -> bool:
         meeting_info = self.get_raw_info()
         return meeting_info["started"]
 
@@ -317,11 +317,11 @@ class Meeting:
         meeting_info["started"] = started
         self.write_raw_info(meeting_info)
 
-    def get_start_time(self):
+    def get_start_time(self) -> int | float:
         meeting_info = self.get_raw_info()
         return meeting_info["start_time"]
 
-    def set_start_time(self, start_time):
+    def set_start_time(self, start_time: int | float):
         meeting_info = self.get_raw_info()
         meeting_info["start_time"] = start_time
         self.write_raw_info(meeting_info)
@@ -352,7 +352,7 @@ class Meeting:
         else:
             return members
 
-    def add_absent_request(self, member_id, timestamp, reason):
+    def add_absent_request(self, member_id: int, timestamp: int | float, reason: str):
         meeting_info = self.get_raw_info()
         members = meeting_info["absent_requests"]
         if members == "disabled":
@@ -403,7 +403,7 @@ class Meeting:
         meeting_info["absent_requests"]["reviewed"].append(target_request)
         self.write_raw_info(meeting_info)
 
-    def get_meeting_record_link(self):
+    def get_meeting_record_link(self) -> str:
         meeting_info = self.get_raw_info()
         try:
             return meeting_info["meeting_record_link"]
