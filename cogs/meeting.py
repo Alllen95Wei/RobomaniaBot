@@ -69,6 +69,7 @@ class Meeting(commands.Cog):
                             f"成員 {request['member']} 似乎關閉了陌生人私訊功能，因此無法傳送通知。"
                         )
             meeting_obj.set_notified(True)
+        MEETING_TASKS[meeting_id]["notify"].stop()
         del MEETING_TASKS[meeting_id]["notify"]
 
     async def notify_start_meeting(self, meeting_id):
@@ -120,6 +121,7 @@ class Meeting(commands.Cog):
                 )
             except discord.Forbidden:
                 pass
+        MEETING_TASKS[meeting_id]["start"].stop()
         del MEETING_TASKS[meeting_id]
 
     def setup_tasks(self, meeting_id) -> float:
@@ -132,8 +134,6 @@ class Meeting(commands.Cog):
             notify_timestamp = time.time() + 5
         else:
             notify_timestamp = meeting_obj.get_start_time() - 300
-        notify_time = datetime.datetime.fromtimestamp(notify_timestamp, now_tz).astimezone(None).timetz()
-        start_time = datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz).astimezone(None).timetz()
         notify_time = (
             datetime.datetime.fromtimestamp(notify_timestamp, now_tz)
             .astimezone(None)
