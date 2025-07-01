@@ -154,7 +154,7 @@ class Meeting(commands.Cog):
                 break
         embed = Embed(
             title="會議已自動結束",
-            description=f"由於距離會議開始已經過 6 小時，機器人已自動結束會議**「{meeting_obj.get_name()}」**。",
+            description=f"由於距離會議開始已經過 6 小時尚未結束，因此機器人自動結束了會議**「{meeting_obj.get_name()}」**。",
             color=default_color,
         )
         embed.add_field(
