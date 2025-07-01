@@ -1,3 +1,4 @@
+# coding=utf-8
 import logging
 from colorlog import ColoredFormatter
 import os
