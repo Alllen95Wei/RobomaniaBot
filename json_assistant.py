@@ -219,7 +219,13 @@ class Meeting:
         self,
     ) -> dict[
         str,
-        str | int | float | bool | dict[str, list[dict[str, str | int | float | dict]]],
+        str
+        | int
+        | float
+        | bool
+        | dict[str, list[dict[str, str | int | float | dict]]]
+        | dict[int, list[list[int | float]]]
+        | None,
     ]:
         file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
         if os.path.exists(file):
@@ -239,6 +245,7 @@ class Meeting:
                 "end_time": None,
                 "meeting_record_link": "",
                 "absent_requests": {"pending": [], "reviewed": []},
+                "attend_records": {},
             }
             return empty_data
 
@@ -403,12 +410,32 @@ class Meeting:
         meeting_info["absent_requests"]["reviewed"].append(target_request)
         self.write_raw_info(meeting_info)
 
+    def toggle_attend_records(self, enabled: bool):
+        meeting_info = self.get_raw_info()
+        if enabled:
+            meeting_info["attend_records"] = {}
+        else:
+            meeting_info["attend_records"] = None
+        self.write_raw_info(meeting_info)
+
+    def get_attend_records(self) -> dict[int, list[list[int | float]]] | None:
+        meeting_info = self.get_raw_info()
+        return meeting_info.get("attend_records", None)
+
+    def add_attend_record(self, member_id: int, timestamp: int | float):
+        meeting_info = self.get_raw_info()
+        if meeting_info.get("attend_records", None) is None:
+            raise Exception(f"Attend record is not enabled.")
+        else:
+            member_latest_record = meeting_info.get("attend_records", {}).get(member_id, [[]])[-1]
+            if len(member_latest_record) % 2 == 0:
+                meeting_info["attend_records"][member_id].append([timestamp])
+            else:
+                meeting_info["attend_records"][member_id][-1][-1] = timestamp
+
     def get_meeting_record_link(self) -> str:
         meeting_info = self.get_raw_info()
-        try:
-            return meeting_info["meeting_record_link"]
-        except KeyError:
-            return ""
+        return meeting_info.get("meeting_record_link", "")
 
     def set_meeting_record_link(self, link: str):
         meeting_info = self.get_raw_info()
