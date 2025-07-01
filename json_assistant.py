@@ -389,6 +389,8 @@ class Meeting:
         response: str = "",
     ):
         meeting_info = self.get_raw_info()
+        if meeting_info["absent_requests"] == "disabled":
+            raise Exception('"absent_requests" disabled.')
         pending_requests: list[dict] = meeting_info.get(
             "absent_requests", {"pending": [], "reviewed": []}
         ).get("pending", [])
