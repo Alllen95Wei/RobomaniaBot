@@ -14,11 +14,13 @@ import datetime
 import json_assistant
 
 error_color = 0xF1411C
-default_color = 0x012a5e
+default_color = 0x012A5E
 now_tz = zoneinfo.ZoneInfo("Asia/Taipei")
 base_dir = os.path.abspath(os.path.dirname(__file__))
 parent_dir = str(Path(__file__).parent.parent.absolute())
-大會_URL = "https://discord.com/channels/1114203090950836284/1114209308910026792"  # noqa
+大會_URL = (  # noqa
+    "https://discord.com/channels/1114203090950836284/1114209308910026792"
+)
 NOTIFY_CHANNEL_ID = 1128232150135738529
 
 MEETING_TASKS: dict[str, dict[str, tasks.Loop | None]] = {}
@@ -54,14 +56,18 @@ class Meeting(commands.Cog):
                     embed = Embed(
                         title="請準時參加會議",
                         description="你的假單因 **尚未經過審核**，因此仍需準時出席會議。\n"
-                                    "如因故無法參加會議，請立即告知主幹。",
+                        "如因故無法參加會議，請立即告知主幹。",
                         color=default_color,
                     )
-                    embed.add_field(name="開始時間", value=f"<t:{start_time}:R>", inline=False)
+                    embed.add_field(
+                        name="開始時間", value=f"<t:{start_time}:R>", inline=False
+                    )
                     try:
                         await self.bot.get_user(request["member"]).send(embed=embed)
                     except discord.Forbidden:
-                        logging.warning(f"成員 {request['member']} 似乎關閉了陌生人私訊功能，因此無法傳送通知。")
+                        logging.warning(
+                            f"成員 {request['member']} 似乎關閉了陌生人私訊功能，因此無法傳送通知。"
+                        )
             meeting_obj.set_notified(True)
         del MEETING_TASKS[meeting_id]["notify"]
 
@@ -103,9 +109,15 @@ class Meeting(commands.Cog):
             ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
             await ch.send(content="@everyone", embed=embed)
             host = self.bot.get_user(meeting_obj.get_host())
-            end_embed = Embed(title="會議結束了嗎？", description="請在會議結束後，按下下方的按鈕。", color=default_color)
+            end_embed = Embed(
+                title="會議結束了嗎？",
+                description="請在會議結束後，按下下方的按鈕。",
+                color=default_color,
+            )
             try:
-                await host.send(embed=end_embed, view=Meeting.EndMeetingView(self.bot, meeting_id))
+                await host.send(
+                    embed=end_embed, view=Meeting.EndMeetingView(self.bot, meeting_id)
+                )
             except discord.Forbidden:
                 pass
         del MEETING_TASKS[meeting_id]
@@ -122,6 +134,16 @@ class Meeting(commands.Cog):
             notify_timestamp = meeting_obj.get_start_time() - 300
         notify_time = datetime.datetime.fromtimestamp(notify_timestamp, now_tz).astimezone(None).timetz()
         start_time = datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz).astimezone(None).timetz()
+        notify_time = (
+            datetime.datetime.fromtimestamp(notify_timestamp, now_tz)
+            .astimezone(None)
+            .timetz()
+        )
+        start_time = (
+            datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz)
+            .astimezone(None)
+            .timetz()
+        )
         MEETING_TASKS[meeting_id] = {
             "notify": tasks.Loop(
                 coro=self.notify_meeting,
@@ -389,8 +411,11 @@ class Meeting(commands.Cog):
                 embed.set_footer(text="如要請假，最晚請在會議開始前 10 分鐘處理完畢。")
             await m.send(
                 embed=embed,
-                view=self.outer_instance.AbsentInView(self.outer_instance, unique_id) if self.children[1].value == ""
-                else None,
+                view=(
+                    self.outer_instance.AbsentInView(self.outer_instance, unique_id)
+                    if self.children[1].value == ""
+                    else None
+                ),
             )
             logging.info(f"已傳送預定/編輯會議 {unique_id} 的通知。")
             self.outer_instance.setup_tasks(unique_id)
@@ -405,9 +430,11 @@ class Meeting(commands.Cog):
             label="點此開啟會議視窗", style=ButtonStyle.green, emoji="📝"
         )
         async def button_callback(
-                self, button: discord.ui.Button, interaction: discord.Interaction
+            self, button: discord.ui.Button, interaction: discord.Interaction
         ):
-            await interaction.response.send_modal(Meeting.MeetingEditor(self.outer_instance, self.meeting_id))
+            await interaction.response.send_modal(
+                Meeting.MeetingEditor(self.outer_instance, self.meeting_id)
+            )
 
     class Absent(Modal):
         def __init__(self, outer_instance, meeting_id: str) -> None:
@@ -425,7 +452,9 @@ class Meeting(commands.Cog):
             self.meeting_id = meeting_id
 
         async def callback(self, interaction: discord.Interaction) -> None:
-            await self.outer_instance.absence_meeting(interaction, self.meeting_id, self.children[0].value)
+            await self.outer_instance.absence_meeting(
+                interaction, self.meeting_id, self.children[0].value
+            )
 
     class AbsentInView(View):
         def __init__(self, outer_instance, meeting_id: str):
@@ -441,11 +470,9 @@ class Meeting(commands.Cog):
             button_life = absent_deadline - time.time()
             return button_life if button_life > 0 else 0
 
-        @discord.ui.button(
-            label="點此開啟請假視窗", style=ButtonStyle.red, emoji="🙋"
-        )
+        @discord.ui.button(label="點此開啟請假視窗", style=ButtonStyle.red, emoji="🙋")
         async def button_callback(
-                self, button: discord.ui.Button, interaction: discord.Interaction
+            self, button: discord.ui.Button, interaction: discord.Interaction
         ):
             meeting_obj = json_assistant.Meeting(self.meeting_id)
             absent_deadline = meeting_obj.get_start_time() - 60 * 10
@@ -453,12 +480,14 @@ class Meeting(commands.Cog):
                 embed = Embed(
                     title="錯誤：自動請假期限已到",
                     description="請假需在會議 10 分鐘前處理完畢。\n"
-                                f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
+                    f"此會議即將在 <t:{int(meeting_obj.get_start_time())}:R> 開始！",
                     color=error_color,
                 )
                 await interaction.followup.send(embed=embed, ephemeral=True)
             else:
-                await interaction.response.send_modal(Meeting.Absent(self.outer_instance, self.meeting_id))
+                await interaction.response.send_modal(
+                    Meeting.Absent(self.outer_instance, self.meeting_id)
+                )
             self.timeout = self.get_button_life()
 
     class ReviewAbsentRequest(Modal):
@@ -549,7 +578,9 @@ class Meeting(commands.Cog):
             self, button: discord.ui.Button, interaction: discord.Interaction
         ) -> None:
             await interaction.response.send_modal(
-                Meeting.ReviewAbsentRequest(self.bot, self.meeting_id, self.member_id, True, self.reason)
+                Meeting.ReviewAbsentRequest(
+                    self.bot, self.meeting_id, self.member_id, True, self.reason
+                )
             )
 
         @discord.ui.button(label="拒絕", style=ButtonStyle.red, emoji="🔙")
@@ -557,7 +588,9 @@ class Meeting(commands.Cog):
             self, button: discord.ui.Button, interaction: discord.Interaction
         ) -> None:
             await interaction.response.send_modal(
-                Meeting.ReviewAbsentRequest(self.bot, self.meeting_id, self.member_id, False, self.reason)
+                Meeting.ReviewAbsentRequest(
+                    self.bot, self.meeting_id, self.member_id, False, self.reason
+                )
             )
 
     class EndMeetingView(View):
@@ -568,7 +601,9 @@ class Meeting(commands.Cog):
             self.meeting_id = meeting_id
 
         @discord.ui.button(label="結束會議", style=ButtonStyle.green, emoji="🔚")
-        async def end_meeting(self, button: discord.ui.Button, interaction: discord.Interaction):
+        async def end_meeting(
+            self, button: discord.ui.Button, interaction: discord.Interaction
+        ):
             meeting_obj = json_assistant.Meeting(self.meeting_id)
             meeting_obj.set_end_time(int(time.time()))
             meeting_obj.archive()
@@ -582,12 +617,16 @@ class Meeting(commands.Cog):
                 value=f"`{self.meeting_id}` ({meeting_obj.get_name()})",
                 inline=False,
             )
-            embed.add_field(name="結束時間", value=f"<t:{int(time.time())}:F>", inline=False)
+            embed.add_field(
+                name="結束時間", value=f"<t:{int(time.time())}:F>", inline=False
+            )
             await interaction.edit_original_response(embed=embed, view=None)
             ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
             await ch.send(embed=embed)
 
-    MEETING_CMDS = discord.SlashCommandGroup(name="meeting", description="會議相關指令。")
+    MEETING_CMDS = discord.SlashCommandGroup(
+        name="meeting", description="會議相關指令。"
+    )
 
     @MEETING_CMDS.command(name="建立", description="預定新的會議。")
     @commands.has_role(1114205838144454807)
@@ -597,7 +636,9 @@ class Meeting(commands.Cog):
             description="請點擊下方的按鈕，開啟會議預定視窗。",
             color=default_color,
         )
-        await ctx.respond(embed=embed, view=self.GetEventInfoInView(self), ephemeral=True)
+        await ctx.respond(
+            embed=embed, view=self.GetEventInfoInView(self), ephemeral=True
+        )
 
     @MEETING_CMDS.command(name="編輯", description="編輯會議資訊。")
     @commands.has_role(1114205838144454807)
@@ -621,7 +662,9 @@ class Meeting(commands.Cog):
                 color=default_color,
             )
             await ctx.respond(
-                embed=embed, view=self.GetEventInfoInView(self, meeting_id), ephemeral=True
+                embed=embed,
+                view=self.GetEventInfoInView(self, meeting_id),
+                ephemeral=True,
             )
         else:
             embed = Embed(
@@ -758,7 +801,9 @@ class Meeting(commands.Cog):
                         )
                     else:
                         meeting_obj.add_absent_request(author_id, time.time(), reason)
-                        absent_record_channel = self.bot.get_channel(1126031617614426142)
+                        absent_record_channel = self.bot.get_channel(
+                            1126031617614426142
+                        )
                         user = json_assistant.User(author_id)
                         absent_record_embed = Embed(
                             title="假單",
@@ -929,7 +974,9 @@ class Meeting(commands.Cog):
             )
         await ctx.respond(embed=embed)
 
-    @MEETING_CMDS.command(name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。")
+    @MEETING_CMDS.command(
+        name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。"
+    )
     @commands.is_owner()
     async def reload_meetings(self, ctx: discord.ApplicationContext):
         global MEETING_TASKS
@@ -945,9 +992,17 @@ class Meeting(commands.Cog):
             if not meeting_obj.get_started():
                 notify_time = int(self.setup_tasks(mid))
                 done_list.append((mid, notify_time))
-        embed = Embed(title="已重新載入會議提醒", description="下列會議尚未開始，已為其設定提醒：", color=default_color)
+        embed = Embed(
+            title="已重新載入會議提醒",
+            description="下列會議尚未開始，已為其設定提醒：",
+            color=default_color,
+        )
         for mid, notify_time in done_list:
-            embed.add_field(name=mid, value=f"將於 <t:{notify_time}:F> (<t:{notify_time}:R>) 提醒", inline=False)
+            embed.add_field(
+                name=mid,
+                value=f"將於 <t:{notify_time}:F> (<t:{notify_time}:R>) 提醒",
+                inline=False,
+            )
         await ctx.respond(embed=embed)
 
 
