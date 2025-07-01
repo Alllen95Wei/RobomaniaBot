@@ -325,11 +325,11 @@ class Meeting:
         meeting_info["started"] = started
         self.write_raw_info(meeting_info)
 
-    def get_start_time(self) -> int | float:
+    def get_start_time(self) -> int:
         meeting_info = self.get_raw_info()
         return meeting_info["start_time"]
 
-    def set_start_time(self, start_time: int | float):
+    def set_start_time(self, start_time: int):
         meeting_info = self.get_raw_info()
         meeting_info["start_time"] = start_time
         self.write_raw_info(meeting_info)
