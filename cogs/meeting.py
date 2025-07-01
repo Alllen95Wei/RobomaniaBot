@@ -24,6 +24,7 @@ parent_dir = str(Path(__file__).parent.parent.absolute())
 NOTIFY_CHANNEL_ID = 1128232150135738529
 
 MEETING_TASKS: dict[str, dict[str, tasks.Loop | None]] = {}
+ONGOING_DISCORD_MEETINGS: dict[int, str] = {}
 
 
 class Meeting(commands.Cog):
@@ -122,6 +123,39 @@ class Meeting(commands.Cog):
             except discord.Forbidden:
                 pass
         MEETING_TASKS[meeting_id]["start"].stop()
+        del MEETING_TASKS[meeting_id]["start"]
+
+    async def auto_end_meeting(self, meeting_id):
+        meeting_obj = json_assistant.Meeting(meeting_id)
+        if (meeting_obj.get_start_time() + 21600) - time.time() > 1000:
+            return
+        meeting_obj.set_end_time(int(time.time()))
+        embed = Embed(
+            title="會議已自動結束",
+            description=f"由於距離會議開始已經過 6 小時，機器人已自動結束會議**「{meeting_obj.get_name()}」**。",
+            color=default_color,
+        )
+        embed.add_field(
+            name="會議 ID 及名稱",
+            value=f"`{meeting_id}` ({meeting_obj.get_name()})",
+            inline=False,
+        )
+        embed.add_field(
+            name="開始時間", value=f"<t:{meeting_obj.get_start_time()}:F>", inline=False
+        )
+        host = self.bot.get_user(meeting_obj.get_host())
+        end_embed = Embed(
+            title="會議結束了嗎？",
+            description="請在會議結束後，按下下方的按鈕。",
+            color=default_color,
+        )
+        try:
+            await host.send(
+                embed=end_embed, view=Meeting.EndMeetingView(self.bot, meeting_id)
+            )
+        except discord.Forbidden:
+            pass
+        MEETING_TASKS[meeting_id]["end"].stop()
         del MEETING_TASKS[meeting_id]
 
     def setup_tasks(self, meeting_id) -> float:
@@ -141,6 +175,13 @@ class Meeting(commands.Cog):
         )
         start_time = (
             datetime.datetime.fromtimestamp(meeting_obj.get_start_time(), now_tz)
+            .astimezone(None)
+            .timetz()
+        )
+        auto_end_time = (
+            datetime.datetime.fromtimestamp(
+                meeting_obj.get_start_time() + 21600, now_tz
+            )
             .astimezone(None)
             .timetz()
         )
@@ -164,7 +205,17 @@ class Meeting(commands.Cog):
                 count=None,
                 reconnect=True,
                 loop=self.bot.loop,
-            )
+            ),
+            "end": tasks.Loop(
+                coro=self.auto_end_meeting,
+                seconds=tasks.MISSING,
+                minutes=tasks.MISSING,
+                hours=tasks.MISSING,
+                time=auto_end_time,
+                count=None,
+                reconnect=True,
+                loop=self.bot.loop,
+            ),
         }
         MEETING_TASKS[meeting_id]["notify"].start(meeting_id)
         MEETING_TASKS[meeting_id]["start"].start(meeting_id)
@@ -345,6 +396,10 @@ class Meeting(commands.Cog):
             meeting_obj.disable_absent(True if self.children[1].value != "" else False)
             meeting_obj.set_host(interaction.user.id)
             meeting_obj.set_link(self.children[3].value)
+            if not self.children[3].value.startswith(
+                "https://discord.com/channels/1114203090950836284/"
+            ):
+                meeting_obj.toggle_attend_records(False)
             meeting_obj.set_meeting_record_link(self.children[4].value)
             meeting_obj.set_notified(False)
             logging.info(f"已預定/編輯會議 {unique_id}。")
@@ -623,6 +678,9 @@ class Meeting(commands.Cog):
             await interaction.edit_original_response(embed=embed, view=None)
             ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
             await ch.send(embed=embed)
+            if MEETING_TASKS.get(self.meeting_id, {}).get("end", None):
+                MEETING_TASKS.get(self.meeting_id, {}).get("end", None).stop()
+                del MEETING_TASKS[self.meeting_id]
 
     MEETING_CMDS = discord.SlashCommandGroup(
         name="meeting", description="會議相關指令。"
