@@ -139,7 +139,9 @@ class Meeting(commands.Cog):
                 for member in channel.members:
                     if member.bot:
                         continue
-                    meeting_obj.add_attend_record(member.id, "join", int(meeting_obj.get_start_time()))
+                    meeting_obj.add_attend_record(
+                        member.id, "join", int(meeting_obj.get_start_time())
+                    )
         MEETING_TASKS[meeting_id]["start"].stop()
         del MEETING_TASKS[meeting_id]["start"]
 
