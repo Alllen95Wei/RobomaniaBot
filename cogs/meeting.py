@@ -261,7 +261,6 @@ class Meeting(commands.Cog):
                     ONGOING_DISCORD_MEETINGS[after.channel.id]
                 )
                 meeting_obj.add_attend_record(member.id, "join", int(time.time()))
-                print("加入會議")
             elif (
                 before.channel is not None
                 and before.channel.id in ONGOING_DISCORD_MEETINGS.keys()
@@ -270,7 +269,6 @@ class Meeting(commands.Cog):
                     ONGOING_DISCORD_MEETINGS[before.channel.id]
                 )
                 meeting_obj.add_attend_record(member.id, "leave", int(time.time()))
-                print("離開會議")
 
     # @tasks.loop(seconds=5)
     # async def check_meeting(self):
@@ -849,8 +847,8 @@ class Meeting(commands.Cog):
     @MEETING_CMDS.command(name="所有id", description="列出所有的會議ID。")
     async def list_meetings(self, ctx):
         embed = Embed(
-            title="會議ID列表",
-            description="目前已存在的會議ID如下：",
+            title="會議 ID 列表",
+            description="目前已存在的會議 ID 如下：",
             color=default_color,
         )
         for i in json_assistant.Meeting.get_all_meeting_id():
@@ -863,7 +861,7 @@ class Meeting(commands.Cog):
         ctx: discord.ApplicationContext,
         meeting_id: Option(
             str,
-            "要請假的會議ID",
+            "要請假的會議 ID",
             name="會議id",
             min_length=5,
             max_length=5,
