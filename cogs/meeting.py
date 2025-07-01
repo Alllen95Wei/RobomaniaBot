@@ -102,6 +102,12 @@ class Meeting(commands.Cog):
                     embed.add_field(name="請假人員", value=absent_members, inline=False)
             ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
             await ch.send(content="@everyone", embed=embed)
+            host = self.bot.get_user(meeting_obj.get_host())
+            end_embed = Embed(title="會議結束了嗎？", description="請在會議結束後，按下下方的按鈕。", color=default_color)
+            try:
+                await host.send(embed=end_embed, view=Meeting.EndMeetingView(self.bot, meeting_id))
+            except discord.Forbidden:
+                pass
         del MEETING_TASKS[meeting_id]
 
     def setup_tasks(self, meeting_id) -> float:
@@ -553,6 +559,33 @@ class Meeting(commands.Cog):
             await interaction.response.send_modal(
                 Meeting.ReviewAbsentRequest(self.bot, self.meeting_id, self.member_id, False, self.reason)
             )
+
+    class EndMeetingView(View):
+        def __init__(self, bot: commands.Bot, meeting_id: str):
+            super().__init__(timeout=None)
+
+            self.bot = bot
+            self.meeting_id = meeting_id
+
+        @discord.ui.button(label="結束會議", style=ButtonStyle.green, emoji="🔚")
+        async def end_meeting(self, button: discord.ui.Button, interaction: discord.Interaction):
+            meeting_obj = json_assistant.Meeting(self.meeting_id)
+            meeting_obj.set_end_time(int(time.time()))
+            meeting_obj.archive()
+            embed = Embed(
+                title="會議已結束",
+                description=f"{interaction.user.mention} 已結束了會議**「{meeting_obj.get_name()}」**。",
+                color=default_color,
+            )
+            embed.add_field(
+                name="會議 ID 及名稱",
+                value=f"`{self.meeting_id}` ({meeting_obj.get_name()})",
+                inline=False,
+            )
+            embed.add_field(name="結束時間", value=f"<t:{int(time.time())}:F>", inline=False)
+            await interaction.edit_original_response(embed=embed, view=None)
+            ch = self.bot.get_channel(NOTIFY_CHANNEL_ID)
+            await ch.send(embed=embed)
 
     MEETING_CMDS = discord.SlashCommandGroup(name="meeting", description="會議相關指令。")
 
