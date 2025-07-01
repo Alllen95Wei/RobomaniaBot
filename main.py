@@ -840,17 +840,17 @@ async def cmd(
             embed = Embed(
                 title="執行結果", description="終端未傳回回應。", color=default_color
             )
-    except WindowsError as e:
-        if e.winerror == 2:
-            embed = Embed(
-                title="錯誤",
-                description="找不到指令。請嘗試更換執行模組。",
-                color=error_color,
-            )
-        else:
-            embed = Embed(
-                title="錯誤", description=f"發生錯誤：`{e}`", color=error_color
-            )
+    # except WindowsError as e:
+    #     if e.winerror == 2:
+    #         embed = Embed(
+    #             title="錯誤",
+    #             description="找不到指令。請嘗試更換執行模組。",
+    #             color=error_color,
+    #         )
+    #     else:
+    #         embed = Embed(
+    #             title="錯誤", description=f"發生錯誤：`{e}`", color=error_color
+    #         )
     except Exception as e:
         embed = Embed(title="錯誤", description=f"發生錯誤：`{e}`", color=error_color)
     try:
