@@ -1088,6 +1088,97 @@ class Meeting(commands.Cog):
             )
         await ctx.respond(embed=embed)
 
+    @staticmethod
+    def member_list_to_id_list(member_list: list[discord.Member]) -> list[int]:
+        return [m.id for m in member_list]
+
+    @MEETING_CMDS.command(
+        name="自動記點", description="自動為尚未出席目前會議的「高一、高二」成員記點。"
+    )
+    @commands.has_role(1114205838144454807)
+    async def auto_add_warning_points(
+        self,
+        ctx: discord.ApplicationContext,
+        voice_channel: Option(
+            discord.VoiceChannel,
+            "會議所在的語音頻道",
+            name="語音頻道",
+            required=False,
+        ) = None,
+    ):
+        await ctx.defer()
+        content = ""
+        voice_channel: discord.VoiceChannel | None
+        if len(ONGOING_DISCORD_MEETINGS) == 0:
+            embed = Embed(
+                title="錯誤：未有會議進行中",
+                description="目前沒有正在 Discord 進行的會議。",
+                color=error_color,
+            )
+        elif len(ONGOING_DISCORD_MEETINGS) > 1 and voice_channel is None:
+            embed = Embed(
+                title="錯誤：多個會議進行中",
+                description="目前有多個正在 Discord 進行的會議。請使用 `語音頻道` 參數指定會議所在的語音頻道。\n"
+                "下方列出正在進行的會議：",
+                color=error_color,
+            )
+            for channel_id, mid2 in ONGOING_DISCORD_MEETINGS.items():
+                embed.add_field(name=mid2, value=f"<@{channel_id}>", inline=False)
+        elif voice_channel.id not in ONGOING_DISCORD_MEETINGS.keys():
+            embed = Embed(
+                title="錯誤：語音頻道無效",
+                description=f"你提供的語音頻道 {voice_channel.mention} 並未在進行會議。",
+                color=error_color
+            )
+        else:
+            if voice_channel is None:
+                voice_channel = self.bot.get_channel(ONGOING_DISCORD_MEETINGS.keys()[0])
+            meeting_obj = json_assistant.Meeting(ONGOING_DISCORD_MEETINGS[voice_channel.id])
+            if time.time() - meeting_obj.get_start_time() < 300:
+                embed = Embed(
+                    title="錯誤：緩衝時間尚未結束",
+                    description=f"會議 `{meeting_obj.event_id}` 開始未滿 5 分鐘，依據隊規仍在緩衝時間內，不應記點。\n"
+                                f"請在 <t:{meeting_obj.get_start_time() + 300}:T> 後再使用此指令。",
+                    color=error_color,
+                )
+            else:
+                team_members = set(self.member_list_to_id_list(
+                    self.bot.get_guild(1114203090950836284)
+                    .get_role(1114212978707923167)  # 高一
+                    .members
+                    + self.bot.get_guild(1114203090950836284)
+                    .get_role(1114212714634559518)  # 高二
+                    .members
+                ))
+                attendants = self.member_list_to_id_list(voice_channel.members)
+                absent_members = []
+                if meeting_obj.get_absent_requests() is not None:
+                    for request in meeting_obj.get_absent_requests().get("reviewed", []):
+                        if request["result"].get("approved", False):
+                            absent_members.append(request["member"])
+                good_members = set(attendants + absent_members)
+                missing_members = set()
+                for m in team_members:
+                    if m not in good_members:
+                        missing_members.add(f"<@{m}>")
+                        json_assistant.User(m).add_warning_points(
+                            0.5,
+                            "開會/培訓 無故遲到(5分鐘)",
+                            f"由 {ctx.user.mention} 透過自動記點執行"
+                        )
+                embed = Embed(
+                    title="記點完成",
+                    description=f"已為 {len(missing_members)} 位成員記上半點。" if len(missing_members) > 0 else "沒有任何成員需被記點。",
+                    color=default_color,
+                )
+                embed.add_field(
+                    name="會議 ID 及名稱",
+                    value=f"`{meeting_obj.event_id}` ({meeting_obj.get_name()})",
+                    inline=False,
+                )
+                content = " ".join(missing_members) + "\n由於**「開會/培訓 無故遲到(5分鐘)」**，依照隊規記上 `0.5` 點。"
+        await ctx.respond(content=content, embed=embed)
+
     @MEETING_CMDS.command(
         name="重新載入提醒", description="重新讀取所有會議，並設定未開始會議的提醒。"
     )
