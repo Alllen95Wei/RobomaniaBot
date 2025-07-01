@@ -463,15 +463,15 @@ class Meeting(commands.Cog):
                 )
             embed.add_field(name="主持人", value=interaction.user.mention, inline=False)
             try:
-                unix_start_time = datetime.datetime.timestamp(
+                unix_start_time = int(datetime.datetime.timestamp(
                     datetime.datetime.strptime(
                         self.children[2].value, "%Y/%m/%d %H:%M"
-                    ).replace(tzinfo=now_tz)
+                    ).replace(tzinfo=now_tz))
                 )
                 if unix_start_time < time.time():
                     embed = Embed(
                         title="錯誤",
-                        description=f"輸入的開始時間(<t:{int(unix_start_time)}:F>)已經過去！請重新輸入。",
+                        description=f"輸入的開始時間(<t:{unix_start_time}:F>)已經過去！請重新輸入。",
                         color=error_color,
                     )
                     await interaction.response.edit_message(embed=embed)
@@ -481,7 +481,7 @@ class Meeting(commands.Cog):
                     meeting_obj.set_start_time(unix_start_time)
                     embed.add_field(
                         name="開始時間",
-                        value=f"<t:{int(unix_start_time)}:F>",
+                        value=f"<t:{unix_start_time}:F>",
                         inline=False,
                     )
             except ValueError:
