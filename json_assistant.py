@@ -6,6 +6,7 @@ import datetime
 import logging
 from string import hexdigits
 from random import choice
+from typing import Literal
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -224,7 +225,7 @@ class Meeting:
         | float
         | bool
         | dict[str, list[dict[str, str | int | float | dict]]]
-        | dict[int, list[list[int | float]]]
+        | dict[str, list[list[int]]]
         | None,
     ]:
         file = os.path.join(base_dir, "meeting_data", str(self.event_id) + ".json")
@@ -418,20 +419,28 @@ class Meeting:
             meeting_info["attend_records"] = None
         self.write_raw_info(meeting_info)
 
-    def get_attend_records(self) -> dict[int, list[list[int | float]]] | None:
+    def get_attend_records(self) -> dict[str, list[list[int]]] | None:
         meeting_info = self.get_raw_info()
         return meeting_info.get("attend_records", None)
 
-    def add_attend_record(self, member_id: int, timestamp: int | float):
+    def add_attend_record(self, member_id: int, join_or_leave: Literal["join", "leave"], timestamp: int):
+        assert join_or_leave in ("join", "leave")
         meeting_info = self.get_raw_info()
+        member_id = str(member_id)
+        pos = ("join", "leave").index(join_or_leave)
+        print(pos)
         if meeting_info.get("attend_records", None) is None:
             raise Exception(f"Attend record is not enabled.")
+        if member_id not in meeting_info["attend_records"].keys():
+            meeting_info["attend_records"][member_id] = [[0, 0]]
+        member_latest_record = meeting_info["attend_records"].get(member_id, [[0, 0]])[-1]
+        if member_latest_record[pos] != 0:
+            record = [0, 0]
+            record[pos] = timestamp
+            meeting_info["attend_records"][member_id].append(record)
         else:
-            member_latest_record = meeting_info.get("attend_records", {}).get(member_id, [[]])[-1]
-            if len(member_latest_record) % 2 == 0:
-                meeting_info["attend_records"][member_id].append([timestamp])
-            else:
-                meeting_info["attend_records"][member_id][-1][-1] = timestamp
+            meeting_info["attend_records"][member_id][-1][pos] = timestamp
+        self.write_raw_info(meeting_info)
 
     def get_meeting_record_link(self) -> str:
         meeting_info = self.get_raw_info()
