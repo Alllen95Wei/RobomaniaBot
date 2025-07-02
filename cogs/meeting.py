@@ -466,10 +466,12 @@ class Meeting(commands.Cog):
                 )
             embed.add_field(name="主持人", value=interaction.user.mention, inline=False)
             try:
-                unix_start_time = int(datetime.datetime.timestamp(
-                    datetime.datetime.strptime(
-                        self.children[2].value, "%Y/%m/%d %H:%M"
-                    ).replace(tzinfo=now_tz))
+                unix_start_time = int(
+                    datetime.datetime.timestamp(
+                        datetime.datetime.strptime(
+                            self.children[2].value, "%Y/%m/%d %H:%M"
+                        ).replace(tzinfo=now_tz)
+                    )
                 )
                 if unix_start_time < time.time():
                     embed = Embed(
@@ -789,6 +791,45 @@ class Meeting(commands.Cog):
             )
             await ctx.respond(embed=embed)
 
+    @MEETING_CMDS.command(name="結束", description="手動結束會議。")
+    @commands.has_role(1114205838144454807)
+    async def end_meeting(
+        self,
+        ctx: discord.ApplicationContext,
+        meeting_id: Option(
+            str,
+            "欲結束的會議 ID",
+            name="會議id",
+            min_length=5,
+            max_length=5,
+            required=True,
+        ),
+    ):
+        id_list = json_assistant.Meeting.get_all_meeting_id()
+        btn_obj = None
+        if meeting_id in id_list:
+            meeting_obj = json_assistant.Meeting(meeting_id)
+            if meeting_obj.get_started():
+                embed = Embed(
+                    title="會議結束了嗎？",
+                    description="請在會議結束後，按下下方的按鈕。",
+                    color=default_color,
+                )
+                btn_obj = self.EndMeetingView(meeting_id)
+            else:
+                embed = Embed(
+                    title="錯誤：會議尚未開始",
+                    description=f"會議 `{meeting_id}` 尚未開始，因此無法結束。",
+                    color=error_color,
+                )
+        else:
+            embed = Embed(
+                title="錯誤",
+                description=f"會議 `{meeting_id}` 不存在！",
+                color=error_color,
+            )
+        await ctx.respond(embed=embed, view=btn_obj, ephemeral=True)
+
     @MEETING_CMDS.command(name="刪除", description="刪除會議。")
     @commands.has_role(1114205838144454807)
     async def delete_meeting(
@@ -796,7 +837,7 @@ class Meeting(commands.Cog):
         ctx,
         meeting_id: Option(
             str,
-            "欲刪除的會議ID",
+            "欲刪除的會議 ID",
             name="會議id",
             min_length=5,
             max_length=5,
@@ -1129,32 +1170,38 @@ class Meeting(commands.Cog):
             embed = Embed(
                 title="錯誤：語音頻道無效",
                 description=f"你提供的語音頻道 {voice_channel.mention} 並未在進行會議。",
-                color=error_color
+                color=error_color,
             )
         else:
             if voice_channel is None:
                 voice_channel = self.bot.get_channel(ONGOING_DISCORD_MEETINGS.keys()[0])
-            meeting_obj = json_assistant.Meeting(ONGOING_DISCORD_MEETINGS[voice_channel.id])
+            meeting_obj = json_assistant.Meeting(
+                ONGOING_DISCORD_MEETINGS[voice_channel.id]
+            )
             if time.time() - meeting_obj.get_start_time() < 300:
                 embed = Embed(
                     title="錯誤：緩衝時間尚未結束",
                     description=f"會議 `{meeting_obj.event_id}` 開始未滿 5 分鐘，依據隊規仍在緩衝時間內，不應記點。\n"
-                                f"請在 <t:{meeting_obj.get_start_time() + 300}:T> 後再使用此指令。",
+                    f"請在 <t:{meeting_obj.get_start_time() + 300}:T> 後再使用此指令。",
                     color=error_color,
                 )
             else:
-                team_members = set(self.member_list_to_id_list(
-                    self.bot.get_guild(1114203090950836284)
-                    .get_role(1114212978707923167)  # 高一
-                    .members
-                    + self.bot.get_guild(1114203090950836284)
-                    .get_role(1114212714634559518)  # 高二
-                    .members
-                ))
+                team_members = set(
+                    self.member_list_to_id_list(
+                        self.bot.get_guild(1114203090950836284)
+                        .get_role(1114212978707923167)  # 高一
+                        .members
+                        + self.bot.get_guild(1114203090950836284)
+                        .get_role(1114212714634559518)  # 高二
+                        .members
+                    )
+                )
                 attendants = self.member_list_to_id_list(voice_channel.members)
                 absent_members = []
                 if meeting_obj.get_absent_requests() is not None:
-                    for request in meeting_obj.get_absent_requests().get("reviewed", []):
+                    for request in meeting_obj.get_absent_requests().get(
+                        "reviewed", []
+                    ):
                         if request["result"].get("approved", False):
                             absent_members.append(request["member"])
                 good_members = set(attendants + absent_members)
@@ -1165,11 +1212,15 @@ class Meeting(commands.Cog):
                         json_assistant.User(m).add_warning_points(
                             0.5,
                             "開會/培訓 無故遲到(5分鐘)",
-                            f"由 {ctx.user.mention} 透過自動記點執行"
+                            f"由 {ctx.user.mention} 透過自動記點執行",
                         )
                 embed = Embed(
                     title="記點完成",
-                    description=f"已為 {len(missing_members)} 位成員記上半點。" if len(missing_members) > 0 else "沒有任何成員需被記點。",
+                    description=(
+                        f"已為 {len(missing_members)} 位成員記上半點。"
+                        if len(missing_members) > 0
+                        else "沒有任何成員需被記點。"
+                    ),
                     color=default_color,
                 )
                 embed.add_field(
@@ -1177,7 +1228,10 @@ class Meeting(commands.Cog):
                     value=f"`{meeting_obj.event_id}` ({meeting_obj.get_name()})",
                     inline=False,
                 )
-                content = " ".join(missing_members) + "\n由於**「開會/培訓 無故遲到(5分鐘)」**，依照隊規記上 `0.5` 點。"
+                content = (
+                    " ".join(missing_members)
+                    + "\n由於**「開會/培訓 無故遲到(5分鐘)」**，依照隊規記上 `0.5` 點。"
+                )
         await ctx.respond(content=content, embed=embed)
 
     @MEETING_CMDS.command(
