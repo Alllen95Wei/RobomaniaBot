@@ -239,6 +239,7 @@ class Meeting(commands.Cog):
         }
         MEETING_TASKS[meeting_id]["notify"].start(meeting_id)
         MEETING_TASKS[meeting_id]["start"].start(meeting_id)
+        MEETING_TASKS[meeting_id]["end"].start(meeting_id)
         return notify_timestamp
 
     @commands.Cog.listener()
