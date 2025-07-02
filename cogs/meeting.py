@@ -815,7 +815,7 @@ class Meeting(commands.Cog):
                     description="請在會議結束後，按下下方的按鈕。",
                     color=default_color,
                 )
-                btn_obj = self.EndMeetingView(meeting_id)
+                btn_obj = self.EndMeetingView(self.bot, meeting_id)
             else:
                 embed = Embed(
                     title="錯誤：會議尚未開始",
